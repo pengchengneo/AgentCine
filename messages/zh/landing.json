@@ -1,0 +1,31 @@
+{
+  "title": "AgentCine",
+  "subtitle": "小说AI一键成片，影视创作全流程工作流",
+  "enterWorkspace": "进入工作区",
+  "loading": "加载中...",
+  "getStarted": "立即体验",
+  "learnMore": "了解更多",
+  "features": {
+    "title": "释放无限创造力",
+    "subtitle": "全流程 AI 辅助，从剧本到成片",
+    "script": {
+      "title": "小说AI拆分剧本",
+      "description": "深度理解文学作品，智能提取角色、对白与动作场景"
+    },
+    "storyboard": {
+      "title": "剧本AI生成分镜",
+      "description": "精准匹配视觉风格，一键生成电影感十足的分镜画面"
+    },
+    "oneClickMovie": {
+      "title": "一键成片",
+      "description": "AI 驱动的视听融合，将文字瞬间转化为高质量影视作品"
+    },
+    "oneClickEdit": {
+      "title": "一键剪辑",
+      "description": "智能节奏把控，自动完成剪接、调色与特效合成"
+    }
+  },
+  "footer": {
+    "copyright": "2026 AgentCine AI. All rights reserved."
+  }
+}

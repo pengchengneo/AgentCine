@@ -1,0 +1,45 @@
+<svg width="960" height="320" viewBox="0 0 960 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">AgentCine logo</title>
+  <desc id="desc">A futuristic logo for AgentCine representing AI-powered storyboard, voice, and video automation.</desc>
+  <defs>
+    <linearGradient id="bg" x1="56" y1="40" x2="904" y2="280" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FBFF"/>
+      <stop offset="0.48" stop-color="#EAF4FF"/>
+      <stop offset="1" stop-color="#E9FFF7"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="232" y1="84" x2="752" y2="238" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#19C2FF"/>
+      <stop offset="0.5" stop-color="#5B7CFF"/>
+      <stop offset="1" stop-color="#19D9A3"/>
+    </linearGradient>
+    <linearGradient id="text" x1="260" y1="88" x2="744" y2="214" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#15A9FF"/>
+      <stop offset="0.52" stop-color="#4E6FFF"/>
+      <stop offset="1" stop-color="#15C89A"/>
+    </linearGradient>
+    <filter id="glow" x="110" y="66" width="740" height="150" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#79BFFF" flood-opacity="0.32"/>
+    </filter>
+    <filter id="soft" x="0" y="0" width="960" height="320" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#80A9D6" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#soft)">
+    <rect x="32" y="32" width="896" height="256" rx="36" fill="url(#bg)"/>
+    <rect x="32.75" y="32.75" width="894.5" height="254.5" rx="35.25" stroke="#B8D7F7" stroke-opacity="0.7" stroke-width="1.5"/>
+  </g>
+
+  <ellipse cx="250" cy="88" rx="120" ry="54" fill="#FFFFFF" fill-opacity="0.55"/>
+  <ellipse cx="770" cy="236" rx="150" ry="66" fill="#DFFFF1" fill-opacity="0.42"/>
+  <ellipse cx="798" cy="92" rx="110" ry="50" fill="#E7F1FF" fill-opacity="0.72"/>
+
+  <g filter="url(#glow)">
+    <text x="480" y="156" text-anchor="middle" fill="url(#text)" stroke="#F8FDFF" stroke-width="2.6" paint-order="stroke fill" font-family="Impact, Arial Black, Helvetica, sans-serif" font-size="82" font-weight="900" letter-spacing="0.5" transform="skewX(-8)">
+      AgentCine
+    </text>
+  </g>
+  <text x="480" y="208" text-anchor="middle" fill="#5F7FA5" font-family="Arial Black, Helvetica, sans-serif" font-size="26" font-weight="700" letter-spacing="1.8">
+    AI-Powered Motion Comic Studio
+  </text>
+</svg>

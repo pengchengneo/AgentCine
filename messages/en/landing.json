@@ -1,0 +1,31 @@
+{
+  "title": "AgentCine",
+  "subtitle": "AI-Powered Novel to Movie, Full-Workflow Film Creation",
+  "enterWorkspace": "Enter Workspace",
+  "loading": "Loading...",
+  "getStarted": "Get Started",
+  "learnMore": "Learn More",
+  "features": {
+    "title": "Unleash Infinite Creativity",
+    "subtitle": "Full-process AI assistance, from script to final cut",
+    "script": {
+      "title": "AI Script Breakdown",
+      "description": "Deep understanding of literary works, intelligently extracting characters, dialogues, and action scenes"
+    },
+    "storyboard": {
+      "title": "AI Storyboard Generation",
+      "description": "Precisely matching visual styles, generating cinematic storyboard frames with one click"
+    },
+    "oneClickMovie": {
+      "title": "One-Click Movie",
+      "description": "AI-driven audiovisual fusion, instantly transforming text into high-quality film works"
+    },
+    "oneClickEdit": {
+      "title": "One-Click Editing",
+      "description": "Intelligent rhythm control, automatically completing cutting, color grading, and VFX synthesis"
+    }
+  },
+  "footer": {
+    "copyright": "2026 AgentCine AI. All rights reserved."
+  }
+}
