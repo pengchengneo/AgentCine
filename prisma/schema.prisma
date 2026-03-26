@@ -1002,6 +1002,7 @@ model PipelineRun {
   currentPhase  String   @default("script") // script|art|storyboard|review
   stateSnapshot Json?    // LangGraph state snapshot for resume
   config        Json?    // PipelineConfig JSON (reviewMode, thresholds, etc.)
+  logs          Json?    // Array of { ts, agent, message, model? }
   errorCode     String?
   errorMessage  String?  @db.Text
   startedAt     DateTime @default(now())

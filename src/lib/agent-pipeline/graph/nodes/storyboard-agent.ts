@@ -6,21 +6,29 @@ import { prisma } from '@/lib/prisma'
 import { submitTask } from '@/lib/task/submitter'
 import { TASK_TYPE } from '@/lib/task/types'
 import { waitForTaskCompletion, waitForMultipleTasksCompletion } from '../task-wait'
+import { appendPipelineLog } from '../../pipeline-log'
 import { createScopedLogger } from '@/lib/logging/core'
+
+const AGENT = '分镜 Agent'
 
 export async function runStoryboardAgent(
   context: GraphNodeContext<PipelineState>,
 ): Promise<void> {
   const { state } = context
+  const log = (message: string) =>
+    appendPipelineLog(state.pipelineRunId, { agent: AGENT, message })
   const logger = createScopedLogger({
     module: 'agent-pipeline.storyboard-agent',
     projectId: state.projectId,
   })
 
   logger.info({ action: 'storyboard_agent.start', message: 'Starting storyboard generation' })
+  await log('开始分镜生成')
 
   // Step 1: Run script-to-storyboard for each episode
-  for (const episodeId of state.episodeIds) {
+  for (let i = 0; i < state.episodeIds.length; i++) {
+    const episodeId = state.episodeIds[i]
+    await log(`生成分镜 ${i + 1}/${state.episodeIds.length} (script_to_storyboard)`)
     const storyboardResult = await submitTask({
       userId: state.userId,
       locale: 'zh',
@@ -52,10 +60,12 @@ export async function runStoryboardAgent(
           },
         },
       },
-      imageUrl: null, // only panels without images
+      imageUrl: null,
     },
     select: { id: true },
   })
+
+  await log(`提交 ${panels.length} 个分镜画面图片任务 (image_panel)`)
 
   const panelTaskIds: string[] = []
   for (const panel of panels) {
@@ -79,6 +89,7 @@ export async function runStoryboardAgent(
   state.panelCount = panels.length
   state.currentPhase = 'review'
 
+  await log(`分镜生成完成，共 ${panels.length} 个画面`)
   logger.info({
     action: 'storyboard_agent.complete',
     message: `Generated storyboards and ${panels.length} panel images`,

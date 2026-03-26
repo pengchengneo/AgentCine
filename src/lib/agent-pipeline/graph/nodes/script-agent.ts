@@ -7,18 +7,24 @@ import { submitTask } from '@/lib/task/submitter'
 import { TASK_TYPE } from '@/lib/task/types'
 import { updatePromptFragment } from '../../asset-layer/registry'
 import { waitForTaskCompletion } from '../task-wait'
+import { appendPipelineLog } from '../../pipeline-log'
 import { createScopedLogger } from '@/lib/logging/core'
+
+const AGENT = '剧本 Agent'
 
 export async function runScriptAgent(
   context: GraphNodeContext<PipelineState>,
 ): Promise<void> {
   const { state } = context
+  const log = (message: string, model?: string) =>
+    appendPipelineLog(state.pipelineRunId, { agent: AGENT, message, model })
   const logger = createScopedLogger({
     module: 'agent-pipeline.script-agent',
     projectId: state.projectId,
   })
 
   logger.info({ action: 'script_agent.start', message: 'Starting script analysis' })
+  await log('开始剧本分析')
 
   // Step 1: Get novel project
   const novelData = await prisma.novelPromotionProject.findUnique({
@@ -28,6 +34,7 @@ export async function runScriptAgent(
   if (!novelData) throw new Error('NovelPromotionProject not found')
 
   // Step 2: Submit analyze_novel task and wait
+  await log('提交小说分析任务 (analyze_novel)')
   const analyzeResult = await submitTask({
     userId: state.userId,
     locale: 'zh',
@@ -41,6 +48,7 @@ export async function runScriptAgent(
     },
   })
   await waitForTaskCompletion(analyzeResult.taskId, state.projectId)
+  await log('小说分析完成')
 
   // Step 3: Read extracted characters and locations from DB
   const characters = await prisma.novelPromotionCharacter.findMany({
@@ -50,6 +58,8 @@ export async function runScriptAgent(
   const locations = await prisma.novelPromotionLocation.findMany({
     where: { novelPromotionProjectId: novelData.id },
   })
+
+  await log(`提取到 ${characters.length} 个角色、${locations.length} 个场景`)
 
   // Step 4: Auto-generate promptFragments from appearance descriptions
   for (const char of characters) {
@@ -71,7 +81,9 @@ export async function runScriptAgent(
     orderBy: { episodeNumber: 'asc' },
   })
 
-  for (const episode of episodes) {
+  for (let i = 0; i < episodes.length; i++) {
+    const episode = episodes[i]
+    await log(`生成剧本 ${i + 1}/${episodes.length} (story_to_script)`)
     const storyResult = await submitTask({
       userId: state.userId,
       locale: 'zh',
@@ -86,6 +98,8 @@ export async function runScriptAgent(
     })
     await waitForTaskCompletion(storyResult.taskId, state.projectId)
   }
+
+  await log(`剧本生成完成，共 ${episodes.length} 集`)
 
   // Update state
   state.characters = characters.map((c) => ({

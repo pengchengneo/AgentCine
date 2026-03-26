@@ -17,6 +17,18 @@
     "reviewPanelTitle": "Review Panel",
     "total": "{count} total",
     "passed": "{count} passed",
-    "pending": "{count} pending"
+    "pending": "{count} pending",
+    "agentMode": "Agent Mode",
+    "manualMode": "Manual Mode",
+    "startPipeline": "Start Pipeline",
+    "cancelPipeline": "Cancel",
+    "workflow": "Workflow",
+    "currentActivity": "Current Task",
+    "tokenUsage": "Token Usage",
+    "inputTokens": "Input",
+    "outputTokens": "Output",
+    "totalTokens": "Total",
+    "noActiveTask": "Waiting...",
+    "duration": "Duration"
   }
 }

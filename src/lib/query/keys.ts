@@ -49,6 +49,13 @@ export const queryKeys = {
         all: () => ['user-models'] as const,
     },
 
+    // ============ Agent Pipeline ============
+    pipeline: {
+        status: (projectId: string) => ['pipeline-status', projectId] as const,
+        review: (projectId: string, phase?: string) =>
+            phase ? ['pipeline-review', projectId, phase] as const : ['pipeline-review', projectId] as const,
+    },
+
     // ============ 任务轮询 ============
     tasks: {
         all: (projectId: string) => ['tasks', projectId] as const,

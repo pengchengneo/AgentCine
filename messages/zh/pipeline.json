@@ -17,6 +17,18 @@
     "reviewPanelTitle": "审核面板",
     "total": "共 {count} 项",
     "passed": "{count} 已通过",
-    "pending": "{count} 待审核"
+    "pending": "{count} 待审核",
+    "agentMode": "Agent 模式",
+    "manualMode": "手动模式",
+    "startPipeline": "启动 Pipeline",
+    "cancelPipeline": "取消",
+    "workflow": "工作流",
+    "currentActivity": "当前任务",
+    "tokenUsage": "Token 用量",
+    "inputTokens": "输入",
+    "outputTokens": "输出",
+    "totalTokens": "总计",
+    "noActiveTask": "等待中...",
+    "duration": "耗时"
   }
 }

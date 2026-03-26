@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { createRun } from '@/lib/run-runtime/service'
+import { getProjectModelConfig, checkRequiredModels } from '@/lib/config-service'
 import { DEFAULT_PIPELINE_CONFIG, PIPELINE_STATUS, type PipelineConfig } from './types'
 import { runAgentPipelineGraph } from './graph/super-graph'
 import { createScopedLogger } from '@/lib/logging/core'
@@ -24,6 +25,18 @@ export async function startPipeline(params: {
   })
   if (!novelData) throw new Error('NovelPromotionProject not found')
 
+  // Pre-validate required models before starting pipeline
+  const modelConfig = await getProjectModelConfig(params.projectId, params.userId)
+  const missingModels = checkRequiredModels(modelConfig, [
+    'analysisModel',
+    'characterModel',
+    'locationModel',
+    'storyboardModel',
+  ])
+  if (missingModels.length > 0) {
+    throw new Error(`模型未配置: ${missingModels.join('、')}。请在项目设置中配置后重试。`)
+  }
+
   const config: PipelineConfig = {
     ...DEFAULT_PIPELINE_CONFIG,
     ...params.config,
@@ -36,7 +49,7 @@ export async function startPipeline(params: {
       userId: params.userId,
       status: PIPELINE_STATUS.RUNNING,
       currentPhase: 'script',
-      config: config as unknown as Record<string, unknown>,
+      config: config as never,
     },
   })
 
