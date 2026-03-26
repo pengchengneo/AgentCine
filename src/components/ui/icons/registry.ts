@@ -74,6 +74,15 @@ import {
   WandSparkles,
   X,
   Zap,
+  Bot,
+  Wrench,
+  Rocket,
+  Square,
+  AlertCircle,
+  CheckCircle2,
+  ScrollText,
+  Circle,
+  XCircle,
 } from 'lucide-react'
 import { customIcons } from './custom'
 
@@ -190,6 +199,15 @@ export const iconRegistry = {
   gripVertical: GripVertical,
   layout: Layout,
   scissors: Scissors,
+  bot: Bot,
+  wrench: Wrench,
+  rocket: Rocket,
+  square: Square,
+  alertCircle: AlertCircle,
+  checkCircle: CheckCircle2,
+  scrollText: ScrollText,
+  circle: Circle,
+  xCircle: XCircle,
 } as const satisfies Record<string, LucideIcon>
 
 export type AppIconName = keyof typeof iconRegistry

@@ -6,7 +6,6 @@ import LanguageSwitcher from './LanguageSwitcher'
 import { AppIcon } from '@/components/ui/icons'
 import UpdateNoticeModal from './UpdateNoticeModal'
 import { useGithubReleaseUpdate } from '@/hooks/common/useGithubReleaseUpdate'
-import { Clapperboard } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 
 
@@ -23,7 +22,7 @@ export default function Navbar() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
               <Link href={{ pathname: session ? '/workspace' : '/' }} className="group flex items-center gap-1.5">
-                <Clapperboard className="h-5 w-5 text-emerald-500 transition-transform group-hover:scale-110" />
+                <AppIcon name="clapperboard" className="h-5 w-5 text-emerald-500 transition-transform group-hover:scale-110" />
                 <span className="text-base font-bold tracking-tight text-(--glass-text-primary)">
                   Agent<span className="text-emerald-500">Cine</span>
                 </span>

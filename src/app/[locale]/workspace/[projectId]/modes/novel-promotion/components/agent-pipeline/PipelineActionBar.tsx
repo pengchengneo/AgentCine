@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Rocket, Square, AlertCircle, CheckCircle2, Clock } from 'lucide-react'
+import { AppIcon } from '@/components/ui/icons'
 import { queryKeys } from '@/lib/query/keys'
 
 type Props = {
@@ -25,21 +25,21 @@ function StatusBadge({ status }: { status: string }) {
     case 'review':
       return (
         <div className="flex items-center gap-1.5 text-xs text-amber-400">
-          <Clock className="h-3 w-3" />
+          <AppIcon name="clock" className="h-3 w-3" />
           等待审核
         </div>
       )
     case 'completed':
       return (
         <div className="flex items-center gap-1.5 text-xs text-emerald-400">
-          <CheckCircle2 className="h-3 w-3" />
+          <AppIcon name="checkCircle" className="h-3 w-3" />
           已完成
         </div>
       )
     case 'failed':
       return (
         <div className="flex items-center gap-1.5 text-xs text-red-400">
-          <AlertCircle className="h-3 w-3" />
+          <AppIcon name="alertCircle" className="h-3 w-3" />
           失败
         </div>
       )
@@ -105,7 +105,7 @@ export function PipelineActionBar({
             disabled={!canStart}
             className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            <Rocket className="h-4 w-4" />
+            <AppIcon name="rocket" className="h-4 w-4" />
             {startMutation.isPending ? '启动中...' : '启动 Pipeline'}
           </button>
         ) : (
@@ -114,7 +114,7 @@ export function PipelineActionBar({
             disabled={cancelMutation.isPending}
             className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-red-800 px-4 py-2.5 text-sm font-medium text-red-400 hover:bg-red-900/30 disabled:opacity-50 transition-colors"
           >
-            <Square className="h-3.5 w-3.5" />
+            <AppIcon name="square" className="h-3.5 w-3.5" />
             {cancelMutation.isPending ? '取消中...' : '停止'}
           </button>
         )}
@@ -122,7 +122,7 @@ export function PipelineActionBar({
 
       {startMutation.isError && (
         <div className="flex items-start gap-2 rounded-lg bg-red-900/30 border border-red-800 px-3 py-2 text-xs text-red-300">
-          <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+          <AppIcon name="alertCircle" className="h-3.5 w-3.5 mt-0.5 shrink-0" />
           <span>{startMutation.error.message}</span>
         </div>
       )}

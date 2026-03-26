@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { ScrollText, ChevronDown, ChevronUp } from 'lucide-react'
+import { AppIcon } from '@/components/ui/icons'
 import type { PipelineLogEntry } from '../../hooks/usePipelineStatus'
 
 const AGENT_COLORS: Record<string, string> = {
@@ -43,10 +43,10 @@ export function PipelineLogStream({ logs }: Props) {
         className="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wider text-(--glass-text-secondary) mb-2"
       >
         <span className="flex items-center gap-1.5">
-          <ScrollText className="h-3.5 w-3.5" />
+          <AppIcon name="scrollText" className="h-3.5 w-3.5" />
           执行日志 ({logs.length})
         </span>
-        {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+        {expanded ? <AppIcon name="chevronUp" className="h-3.5 w-3.5" /> : <AppIcon name="chevronDown" className="h-3.5 w-3.5" />}
       </button>
 
       {expanded && (

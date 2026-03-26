@@ -1,6 +1,6 @@
 'use client'
 
-import { Bot, Wrench } from 'lucide-react'
+import { AppIcon } from '@/components/ui/icons'
 
 type Props = {
   isAgentMode: boolean
@@ -18,7 +18,7 @@ export function AgentModeToggle({ isAgentMode, onToggle }: Props) {
             : 'text-(--glass-text-tertiary) hover:text-(--glass-text-secondary)'
         }`}
       >
-        <Wrench className="h-3.5 w-3.5" />
+        <AppIcon name="wrench" className="h-3.5 w-3.5" />
         手动
       </button>
       <button
@@ -29,7 +29,7 @@ export function AgentModeToggle({ isAgentMode, onToggle }: Props) {
             : 'text-(--glass-text-tertiary) hover:text-(--glass-text-secondary)'
         }`}
       >
-        <Bot className="h-3.5 w-3.5" />
+        <AppIcon name="bot" className="h-3.5 w-3.5" />
         Agent
       </button>
     </div>

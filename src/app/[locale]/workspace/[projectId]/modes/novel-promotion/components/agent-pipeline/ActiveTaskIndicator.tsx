@@ -1,6 +1,6 @@
 'use client'
 
-import { Bot, Cpu, Loader2 } from 'lucide-react'
+import { AppIcon } from '@/components/ui/icons'
 import type { ActiveTaskInfo } from '../../hooks/usePipelineStatus'
 
 const AGENT_NAMES: Record<string, string> = {
@@ -35,7 +35,7 @@ export function ActiveTaskIndicator({ activeTask, currentPhase }: Props) {
           当前任务
         </h3>
         <div className="flex items-center gap-2 text-sm text-(--glass-text-tertiary)">
-          <Bot className="h-4 w-4" />
+          <AppIcon name="bot" className="h-4 w-4" />
           <span>等待中...</span>
         </div>
       </div>
@@ -53,19 +53,19 @@ export function ActiveTaskIndicator({ activeTask, currentPhase }: Props) {
       <div className="space-y-2">
         {agentName && (
           <div className="flex items-center gap-2">
-            <Bot className="h-4 w-4 text-blue-400" />
+            <AppIcon name="bot" className="h-4 w-4 text-blue-400" />
             <span className="text-sm font-medium text-(--glass-text-primary)">{agentName}</span>
           </div>
         )}
 
         <div className="flex items-center gap-2">
-          <Loader2 className="h-3.5 w-3.5 text-blue-400 animate-spin" />
+          <AppIcon name="loader" className="h-3.5 w-3.5 text-blue-400 animate-spin" />
           <span className="text-sm text-(--glass-text-secondary)">{taskLabel}</span>
         </div>
 
         {activeTask.model && (
           <div className="flex items-center gap-2">
-            <Cpu className="h-3.5 w-3.5 text-(--glass-text-tertiary)" />
+            <AppIcon name="cpu" className="h-3.5 w-3.5 text-(--glass-text-tertiary)" />
             <span className="text-xs font-mono text-(--glass-text-tertiary)">{activeTask.model}</span>
           </div>
         )}

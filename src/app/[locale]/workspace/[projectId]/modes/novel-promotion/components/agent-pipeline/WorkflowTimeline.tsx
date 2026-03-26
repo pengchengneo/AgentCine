@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle2, Loader2, Circle, XCircle } from 'lucide-react'
+import { AppIcon } from '@/components/ui/icons'
 import type { StepInfo } from '../../hooks/usePipelineStatus'
 import { STEP_LABELS } from './constants'
 
@@ -29,13 +29,13 @@ const tokenFormatter = new Intl.NumberFormat()
 function StepIcon({ status }: { status: string }) {
   switch (status) {
     case 'completed':
-      return <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+      return <AppIcon name="checkCircle" className="h-5 w-5 text-emerald-400" />
     case 'running':
-      return <Loader2 className="h-5 w-5 text-blue-400 animate-spin" />
+      return <AppIcon name="loader" className="h-5 w-5 text-blue-400 animate-spin" />
     case 'failed':
-      return <XCircle className="h-5 w-5 text-red-400" />
+      return <AppIcon name="xCircle" className="h-5 w-5 text-red-400" />
     default:
-      return <Circle className="h-5 w-5 text-(--glass-text-tertiary)" />
+      return <AppIcon name="circle" className="h-5 w-5 text-(--glass-text-tertiary)" />
   }
 }
 
@@ -54,7 +54,7 @@ type Props = {
   currentPhase?: string | null
 }
 
-export function WorkflowTimeline({ steps, currentPhase }: Props) {
+export function WorkflowTimeline({ steps }: Props) {
   const displaySteps = steps && steps.length > 0 ? steps : DEFAULT_STEPS
 
   return (

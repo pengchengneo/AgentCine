@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, Zap } from 'lucide-react'
+import { AppIcon } from '@/components/ui/icons'
 import type { TokenUsage, StepInfo } from '../../hooks/usePipelineStatus'
 import { STEP_LABELS } from './constants'
 
@@ -29,7 +29,7 @@ export function TokenUsageSummary({ totalUsage, steps }: Props) {
       ) : (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-amber-400" />
+            <AppIcon name="bolt" className="h-4 w-4 text-amber-400" />
             <span className="text-lg font-semibold text-(--glass-text-primary)">
               {fmt.format(total.totalTokens)}
             </span>
@@ -57,7 +57,7 @@ export function TokenUsageSummary({ totalUsage, steps }: Props) {
                 onClick={() => setExpanded((v) => !v)}
                 className="flex items-center gap-1 text-xs text-(--glass-text-tertiary) hover:text-(--glass-text-secondary) transition-colors"
               >
-                {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                {expanded ? <AppIcon name="chevronDown" className="h-3 w-3" /> : <AppIcon name="chevronRight" className="h-3 w-3" />}
                 按阶段查看
               </button>
               {expanded && (

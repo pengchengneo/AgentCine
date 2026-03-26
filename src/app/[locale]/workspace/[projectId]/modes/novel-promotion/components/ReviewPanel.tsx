@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, RotateCcw, Eye } from 'lucide-react'
+import { AppIcon } from '@/components/ui/icons'
 
 type ReviewItem = {
   id: string
@@ -106,7 +106,7 @@ export function ReviewPanel({ projectId }: Props) {
                     className="p-1 rounded hover:bg-emerald-800 text-emerald-400"
                     title="通过"
                   >
-                    <Check className="h-4 w-4" />
+                    <AppIcon name="check" className="h-4 w-4" />
                   </button>
                 </>
               )}
