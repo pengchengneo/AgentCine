@@ -1,0 +1,22 @@
+{
+  "pipeline": {
+    "oneClickGenerate": "一键生成",
+    "starting": "启动中...",
+    "running": "Agent 生成中...",
+    "failed": "生成失败",
+    "review": "生成完成，等待审核",
+    "completed": "已完成",
+    "phaseScript": "剧本分析",
+    "phaseArt": "美术生成",
+    "phaseStoryboard": "分镜生成",
+    "phaseReview": "审核",
+    "approve": "通过",
+    "reject": "拒绝",
+    "retry": "重新生成",
+    "editPrompt": "编辑 Prompt",
+    "reviewPanelTitle": "审核面板",
+    "total": "共 {count} 项",
+    "passed": "{count} 已通过",
+    "pending": "{count} 待审核"
+  }
+}
