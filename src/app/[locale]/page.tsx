@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect } from 'react'
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useSession } from 'next-auth/react'
 import { useRouter } from '@/i18n/navigation'
 import Navbar from '@/components/Navbar'
 import { Link } from '@/i18n/navigation'
 import { AppIcon } from '@/components/ui/icons'
+import { Clapperboard } from 'lucide-react'
 
 export default function Home() {
   const t = useTranslations('landing')
@@ -26,14 +26,11 @@ export default function Home() {
   if (status !== 'unauthenticated') {
     return (
       <div className="glass-page min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Image
-            src="/logo-small.png?v=1"
-            alt={tc('appName')}
-            width={80}
-            height={80}
-            className="animate-pulse"
-          />
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <Clapperboard className="h-12 w-12 text-emerald-500" />
+          <span className="text-xl font-bold tracking-tight text-(--glass-text-primary)">
+            Agent<span className="text-emerald-500">Cine</span>
+          </span>
         </div>
       </div>
     )
@@ -283,16 +280,10 @@ export default function Home() {
       {/* Footer */}
       <footer className="relative z-10 py-12 px-4 border-t border-[var(--glass-stroke-base)] bg-[var(--glass-bg-canvas)]">
         <div className="container mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex items-center gap-4">
-            <Image
-              src="/logo-small.png?v=1"
-              alt={tc('appName')}
-              width={40}
-              height={40}
-              className="grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all"
-            />
-            <span className="text-sm font-bold tracking-widest uppercase text-[var(--glass-text-tertiary)]">
-              {t('title')}
+          <div className="flex items-center gap-3">
+            <Clapperboard className="h-5 w-5 text-emerald-500 opacity-50 hover:opacity-100 transition-opacity" />
+            <span className="text-sm font-bold tracking-tight text-(--glass-text-tertiary) hover:text-(--glass-text-primary) transition-colors">
+              Agent<span className="text-emerald-500">Cine</span>
             </span>
           </div>
           
