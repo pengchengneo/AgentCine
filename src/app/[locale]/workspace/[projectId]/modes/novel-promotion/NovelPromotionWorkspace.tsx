@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import ProgressToast from '@/components/ProgressToast'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { AnimatedBackground } from '@/components/ui/SharedComponents'
@@ -9,6 +10,10 @@ import WorkspaceRunStreamConsoles from './components/WorkspaceRunStreamConsoles'
 import WorkspaceStageContent from './components/WorkspaceStageContent'
 import WorkspaceAssetLibraryModal from './components/WorkspaceAssetLibraryModal'
 import WorkspaceHeaderShell from './components/WorkspaceHeaderShell'
+import { AgentPipelineDashboard } from './components/agent-pipeline/AgentPipelineDashboard'
+import { AgentModeToggle } from './components/agent-pipeline/AgentModeToggle'
+import { NavbarCenterPortal } from '@/components/NavbarCenterPortal'
+import { ReviewPanel } from './components/ReviewPanel'
 import { WorkspaceStageRuntimeProvider } from './WorkspaceStageRuntimeContext'
 import { useNovelPromotionWorkspaceController } from './hooks/useNovelPromotionWorkspaceController'
 import type { NovelPromotionWorkspaceProps } from './types'
@@ -17,6 +22,8 @@ import '@/styles/animations.css'
 function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
   const vm = useNovelPromotionWorkspaceController(props)
   const tProgress = useTranslations('progress')
+  const [isAgentMode, setIsAgentMode] = useState(false)
+  const [pipelineRunId, setPipelineRunId] = useState<string | null>(null)
 
   const {
     project,
@@ -28,6 +35,10 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
     onEpisodeRename,
     onEpisodeDelete,
   } = props
+
+  const handleToggleMode = useCallback(() => {
+    setIsAgentMode((v) => !v)
+  }, [])
 
   const storyToScriptStream = vm.execution.storyToScriptStream
   const scriptToStoryboardStream = vm.execution.scriptToStoryboardStream
@@ -78,6 +89,10 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
     <div>
       <AnimatedBackground />
 
+      <NavbarCenterPortal>
+        <AgentModeToggle isAgentMode={isAgentMode} onToggle={handleToggleMode} />
+      </NavbarCenterPortal>
+
       <WorkspaceHeaderShell
         isSettingsModalOpen={vm.ui.isSettingsModalOpen}
         isWorldContextModalOpen={vm.ui.isWorldContextModalOpen}
@@ -119,9 +134,28 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
       />
 
       <div className="pt-24">
-        <WorkspaceStageRuntimeProvider value={vm.runtime.stageRuntime}>
-          <WorkspaceStageContent currentStage={vm.stageNav.currentStage} />
-        </WorkspaceStageRuntimeProvider>
+        {isAgentMode ? (
+          <div className="flex gap-6 px-6">
+            {/* Left sidebar: Pipeline Dashboard */}
+            <div className="w-80 flex-shrink-0">
+              <AgentPipelineDashboard
+                projectId={projectId}
+                novelText={vm.project.novelText}
+                disabled={!vm.project.novelText?.trim()}
+                pipelineRunId={pipelineRunId}
+                onStarted={setPipelineRunId}
+              />
+            </div>
+            {/* Right content: Review Panel */}
+            <div className="flex-1 min-w-0">
+              {pipelineRunId && <ReviewPanel projectId={projectId} />}
+            </div>
+          </div>
+        ) : (
+          <WorkspaceStageRuntimeProvider value={vm.runtime.stageRuntime}>
+            <WorkspaceStageContent currentStage={vm.stageNav.currentStage} />
+          </WorkspaceStageRuntimeProvider>
+        )}
 
         <WorkspaceAssetLibraryModal
           isOpen={vm.ui.isAssetLibraryOpen}
