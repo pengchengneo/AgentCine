@@ -91,6 +91,8 @@ model NovelPromotionCharacter {
   profileConfirmed        Boolean               @default(false)
   introduction            String?               @db.Text // 角色介绍（身份、关系、称呼映射，如"我"对应此角色）
   sourceGlobalCharacterId String? // 🆕 来源全局角色ID（复制时记录）
+  promptFragment          String?  @db.Text
+  assetStatus             String   @default("draft") // draft|locked
   appearances             CharacterAppearance[]
   novelPromotionProject   NovelPromotionProject @relation(fields: [novelPromotionProjectId], references: [id], onDelete: Cascade)
 
@@ -107,6 +109,8 @@ model NovelPromotionLocation {
   createdAt               DateTime              @default(now())
   updatedAt               DateTime              @default(now()) @updatedAt
   sourceGlobalLocationId  String? // 🆕 来源全局场景ID（复制时记录）
+  promptFragment          String?  @db.Text
+  assetStatus             String   @default("draft") // draft|locked
   selectedImageId         String?
   selectedImage           LocationImage?        @relation("SelectedLocationImage", fields: [selectedImageId], references: [id], onDelete: SetNull)
   images                  LocationImage[]       @relation("LocationImages")
@@ -261,6 +265,7 @@ model NovelPromotionProject {
   lastEpisodeId   String?
   imageResolution String                    @default("2K")
   importStatus    String?
+  pipelineMode    String   @default("manual") // manual|agent
   characters      NovelPromotionCharacter[]
   episodes        NovelPromotionEpisode[]
   locations       NovelPromotionLocation[]
@@ -987,4 +992,57 @@ model LegacyMediaRefBackup {
   @@index([runId])
   @@index([tableName, fieldName])
   @@map("legacy_media_refs_backup")
+}
+
+model PipelineRun {
+  id            String   @id @default(uuid())
+  projectId     String
+  userId        String
+  status        String   @default("queued") // queued|running|paused|review|completed|failed
+  currentPhase  String   @default("script") // script|art|storyboard|review
+  stateSnapshot Json?    // LangGraph state snapshot for resume
+  config        Json?    // PipelineConfig JSON (reviewMode, thresholds, etc.)
+  errorCode     String?
+  errorMessage  String?  @db.Text
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  reviewItems   PipelineReviewItem[]
+
+  @@index([projectId, status])
+  @@index([userId, status])
+  @@map("pipeline_runs")
+}
+
+model PipelineReviewItem {
+  id            String   @id @default(uuid())
+  pipelineRunId String
+  phase         String   // script|art|storyboard
+  targetType    String   // character|location|panel
+  targetId      String
+  status        String   @default("pending") // auto_passed|pending|approved|rejected|retrying
+  score         Float?
+  feedback      String?  @db.Text
+  retryCount    Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  pipelineRun   PipelineRun @relation(fields: [pipelineRunId], references: [id], onDelete: Cascade)
+
+  @@index([pipelineRunId, phase])
+  @@index([pipelineRunId, status])
+  @@map("pipeline_review_items")
+}
+
+model StyleProfile {
+  id             String @id @default(uuid())
+  projectId      String @unique
+  artStyle       String
+  stylePrefix    String @db.Text
+  negativePrompt String @db.Text
+  colorPalette   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("style_profiles")
 }
