@@ -3,32 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { getReviewSummary } from './review/review-service'
 import type { ReviewSummary } from './review/types'
-import type { PipelineLogEntry } from './pipeline-log'
-
-type TokenUsage = {
-  promptTokens: number
-  completionTokens: number
-  totalTokens: number
-}
-
-type StepInfo = {
-  stepKey: string
-  stepTitle: string
-  status: string
-  stepIndex: number
-  startedAt: string | null
-  finishedAt: string | null
-  lastErrorMessage: string | null
-  usage: TokenUsage
-}
-
-type ActiveTaskInfo = {
-  type: string
-  targetType: string
-  progress: number
-  status: string
-  model: string | null
-}
+import type { TokenUsage, StepInfo, ActiveTaskInfo, PipelineLogEntry } from './pipeline-types'
 
 export type PipelineStatusDetail = {
   exists: true
@@ -79,63 +54,63 @@ export async function getPipelineRunDetail(projectId: string): Promise<PipelineS
     select: { id: true },
   })
 
-  let steps: StepInfo[] = []
-  const totalUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
-
-  if (graphRun) {
-    const graphSteps = await prisma.graphStep.findMany({
-      where: { runId: graphRun.id },
-      orderBy: { stepIndex: 'asc' },
-      include: {
-        attempts: {
-          select: { usageJson: true, provider: true, modelKey: true },
-        },
+  // Parallelize independent queries
+  const [graphSteps, activeTasks, reviewSummary] = await Promise.all([
+    graphRun
+      ? prisma.graphStep.findMany({
+          where: { runId: graphRun.id },
+          orderBy: { stepIndex: 'asc' },
+          include: {
+            attempts: {
+              select: { usageJson: true, provider: true, modelKey: true },
+            },
+          },
+        })
+      : Promise.resolve([]),
+    prisma.task.findMany({
+      where: {
+        projectId,
+        status: { in: ['queued', 'processing'] },
       },
-    })
+      orderBy: { updatedAt: 'desc' },
+      take: 1,
+      select: {
+        type: true,
+        targetType: true,
+        progress: true,
+        status: true,
+        billingInfo: true,
+      },
+    }),
+    getReviewSummary(pipelineRun.id),
+  ])
 
-    steps = graphSteps.map((s) => {
-      const stepUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
-      for (const attempt of s.attempts) {
-        const au = sumUsageFromJson(attempt.usageJson)
-        stepUsage.promptTokens += au.promptTokens
-        stepUsage.completionTokens += au.completionTokens
-        stepUsage.totalTokens += au.totalTokens
-      }
-      totalUsage.promptTokens += stepUsage.promptTokens
-      totalUsage.completionTokens += stepUsage.completionTokens
-      totalUsage.totalTokens += stepUsage.totalTokens
+  const totalUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
+  const steps: StepInfo[] = graphSteps.map((s) => {
+    const stepUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
+    for (const attempt of s.attempts) {
+      const au = sumUsageFromJson(attempt.usageJson)
+      stepUsage.promptTokens += au.promptTokens
+      stepUsage.completionTokens += au.completionTokens
+      stepUsage.totalTokens += au.totalTokens
+    }
+    totalUsage.promptTokens += stepUsage.promptTokens
+    totalUsage.completionTokens += stepUsage.completionTokens
+    totalUsage.totalTokens += stepUsage.totalTokens
 
-      return {
-        stepKey: s.stepKey,
-        stepTitle: s.stepTitle,
-        status: s.status,
-        stepIndex: s.stepIndex,
-        startedAt: s.startedAt?.toISOString() ?? null,
-        finishedAt: s.finishedAt?.toISOString() ?? null,
-        lastErrorMessage: s.lastErrorMessage,
-        usage: stepUsage,
-      }
-    })
-  }
-
-  // Find active tasks for this project
-  let activeTask: ActiveTaskInfo | null = null
-  const activeTasks = await prisma.task.findMany({
-    where: {
-      projectId,
-      status: { in: ['queued', 'processing'] },
-    },
-    orderBy: { updatedAt: 'desc' },
-    take: 1,
-    select: {
-      type: true,
-      targetType: true,
-      progress: true,
-      status: true,
-      billingInfo: true,
-    },
+    return {
+      stepKey: s.stepKey,
+      stepTitle: s.stepTitle,
+      status: s.status,
+      stepIndex: s.stepIndex,
+      startedAt: s.startedAt?.toISOString() ?? null,
+      finishedAt: s.finishedAt?.toISOString() ?? null,
+      lastErrorMessage: s.lastErrorMessage,
+      usage: stepUsage,
+    }
   })
 
+  let activeTask: ActiveTaskInfo | null = null
   if (activeTasks.length > 0) {
     const task = activeTasks[0]
     let model: string | null = null
@@ -151,8 +126,6 @@ export async function getPipelineRunDetail(projectId: string): Promise<PipelineS
       model,
     }
   }
-
-  const reviewSummary = await getReviewSummary(pipelineRun.id)
 
   const logs = Array.isArray(pipelineRun.logs) ? (pipelineRun.logs as PipelineLogEntry[]) : []
 

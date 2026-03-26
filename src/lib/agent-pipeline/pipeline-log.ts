@@ -1,14 +1,9 @@
 // src/lib/agent-pipeline/pipeline-log.ts
 
 import { prisma } from '@/lib/prisma'
+import type { PipelineLogEntry } from './pipeline-types'
 
-export type PipelineLogEntry = {
-  ts: string
-  agent: string
-  message: string
-  model?: string
-  detail?: string
-}
+export type { PipelineLogEntry }
 
 export async function appendPipelineLog(
   pipelineRunId: string,
