@@ -2,31 +2,9 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query/keys'
+import type { TokenUsage, StepInfo, ActiveTaskInfo, PipelineLogEntry } from '@/lib/agent-pipeline/pipeline-types'
 
-type TokenUsage = {
-  promptTokens: number
-  completionTokens: number
-  totalTokens: number
-}
-
-export type StepInfo = {
-  stepKey: string
-  stepTitle: string
-  status: string
-  stepIndex: number
-  startedAt: string | null
-  finishedAt: string | null
-  lastErrorMessage: string | null
-  usage: TokenUsage
-}
-
-export type ActiveTaskInfo = {
-  type: string
-  targetType: string
-  progress: number
-  status: string
-  model: string | null
-}
+export type { TokenUsage, StepInfo, ActiveTaskInfo, PipelineLogEntry }
 
 export type ReviewSummary = {
   total: number
@@ -35,14 +13,6 @@ export type ReviewSummary = {
   approvedCount: number
   rejectedCount: number
   retryingCount: number
-}
-
-export type PipelineLogEntry = {
-  ts: string
-  agent: string
-  message: string
-  model?: string
-  detail?: string
 }
 
 export type PipelineStatusResponse = {

@@ -2,15 +2,11 @@
 
 import { CheckCircle2, Loader2, Circle, XCircle } from 'lucide-react'
 import type { StepInfo } from '../../hooks/usePipelineStatus'
+import { STEP_LABELS } from './constants'
 
-const STEP_LABELS: Record<string, string> = {
-  script_agent: '剧本分析',
-  art_director_agent: '美术生成',
-  storyboard_agent: '分镜生成',
-  producer_quality_check: '质量审核',
-}
+type DefaultStep = Pick<StepInfo, 'stepKey' | 'status'>
 
-const DEFAULT_STEPS = [
+const DEFAULT_STEPS: DefaultStep[] = [
   { stepKey: 'script_agent', status: 'pending' },
   { stepKey: 'art_director_agent', status: 'pending' },
   { stepKey: 'storyboard_agent', status: 'pending' },
@@ -70,11 +66,11 @@ export function WorkflowTimeline({ steps, currentPhase }: Props) {
         {displaySteps.map((step, index) => {
           const isLast = index === displaySteps.length - 1
           const label = STEP_LABELS[step.stepKey] || step.stepKey
-          const fullStep = step as StepInfo
-          const duration = fullStep.startedAt
-            ? formatDuration(fullStep.startedAt, fullStep.finishedAt)
+          const isFullStep = 'startedAt' in step
+          const duration = isFullStep && (step as StepInfo).startedAt
+            ? formatDuration((step as StepInfo).startedAt, (step as StepInfo).finishedAt)
             : null
-          const hasTokens = fullStep.usage && fullStep.usage.totalTokens > 0
+          const hasTokens = isFullStep && (step as StepInfo).usage && (step as StepInfo).usage.totalTokens > 0
 
           return (
             <div key={step.stepKey} className="relative pb-4">
@@ -106,12 +102,12 @@ export function WorkflowTimeline({ steps, currentPhase }: Props) {
                   </div>
                   {hasTokens && (
                     <div className="text-xs text-(--glass-text-tertiary) mt-0.5">
-                      {tokenFormatter.format(fullStep.usage.totalTokens)} tokens
+                      {tokenFormatter.format((step as StepInfo).usage.totalTokens)} tokens
                     </div>
                   )}
-                  {step.status === 'failed' && fullStep.lastErrorMessage && (
+                  {step.status === 'failed' && isFullStep && (step as StepInfo).lastErrorMessage && (
                     <div className="text-xs text-red-400 mt-0.5 truncate">
-                      {fullStep.lastErrorMessage}
+                      {(step as StepInfo).lastErrorMessage}
                     </div>
                   )}
                 </div>

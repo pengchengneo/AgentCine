@@ -11,6 +11,12 @@ const AGENT_COLORS: Record<string, string> = {
   '制片 Agent': 'text-emerald-400',
 }
 
+const timeFormatter = new Intl.DateTimeFormat('zh-CN', {
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+})
+
 type Props = {
   logs?: PipelineLogEntry[]
 }
@@ -49,12 +55,7 @@ export function PipelineLogStream({ logs }: Props) {
           className="max-h-48 overflow-y-auto rounded-lg bg-black/20 p-2 space-y-0.5 font-mono text-[11px] leading-relaxed scrollbar-thin"
         >
           {logs.map((entry, i) => {
-            const time = new Date(entry.ts)
-            const timeStr = time.toLocaleTimeString('zh-CN', {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            })
+            const timeStr = timeFormatter.format(new Date(entry.ts))
             const agentColor = AGENT_COLORS[entry.agent] || 'text-(--glass-text-secondary)'
 
             return (

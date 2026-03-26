@@ -51,7 +51,6 @@ export function ActiveTaskIndicator({ activeTask, currentPhase }: Props) {
         当前任务
       </h3>
       <div className="space-y-2">
-        {/* Agent name */}
         {agentName && (
           <div className="flex items-center gap-2">
             <Bot className="h-4 w-4 text-blue-400" />
@@ -59,13 +58,11 @@ export function ActiveTaskIndicator({ activeTask, currentPhase }: Props) {
           </div>
         )}
 
-        {/* Task type */}
         <div className="flex items-center gap-2">
           <Loader2 className="h-3.5 w-3.5 text-blue-400 animate-spin" />
           <span className="text-sm text-(--glass-text-secondary)">{taskLabel}</span>
         </div>
 
-        {/* Model */}
         {activeTask.model && (
           <div className="flex items-center gap-2">
             <Cpu className="h-3.5 w-3.5 text-(--glass-text-tertiary)" />
@@ -73,7 +70,6 @@ export function ActiveTaskIndicator({ activeTask, currentPhase }: Props) {
           </div>
         )}
 
-        {/* Progress bar */}
         <div className="mt-1">
           <div className="flex items-center justify-between text-xs text-(--glass-text-tertiary) mb-1">
             <span>进度</span>

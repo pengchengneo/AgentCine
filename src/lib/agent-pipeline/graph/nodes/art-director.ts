@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { submitTask } from '@/lib/task/submitter'
 import { TASK_TYPE } from '@/lib/task/types'
 import { getOrCreateStyleProfile, lockAsset, getCharacterAssets, getLocationAssets } from '../../asset-layer/registry'
-import { waitForTaskCompletion } from '../task-wait'
+import { waitForMultipleTasksCompletion } from '../task-wait'
 import { getArtStylePrompt } from '@/lib/constants'
 import { appendPipelineLog } from '../../pipeline-log'
 import { createScopedLogger } from '@/lib/logging/core'
@@ -66,9 +66,7 @@ export async function runArtDirectorAgent(
     })
     characterTaskIds.push(result.taskId)
   }
-  for (const taskId of characterTaskIds) {
-    await waitForTaskCompletion(taskId, state.projectId)
-  }
+  await waitForMultipleTasksCompletion(characterTaskIds, state.projectId)
   if (charsToGenerate.length > 0) {
     await log(`${charsToGenerate.length} 个角色图片生成完成`)
   }
@@ -95,9 +93,7 @@ export async function runArtDirectorAgent(
     })
     locationTaskIds.push(result.taskId)
   }
-  for (const taskId of locationTaskIds) {
-    await waitForTaskCompletion(taskId, state.projectId)
-  }
+  await waitForMultipleTasksCompletion(locationTaskIds, state.projectId)
   if (locsToGenerate.length > 0) {
     await log(`${locsToGenerate.length} 个场景图片生成完成`)
   }

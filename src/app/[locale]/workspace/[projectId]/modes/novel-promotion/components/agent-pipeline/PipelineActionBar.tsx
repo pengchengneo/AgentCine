@@ -9,7 +9,6 @@ type Props = {
   novelText: string
   disabled: boolean
   pipelineStatus?: string
-  pipelineRunId: string | null
   runId: string | null
   onStarted: (pipelineRunId: string) => void
 }
@@ -54,7 +53,6 @@ export function PipelineActionBar({
   novelText,
   disabled,
   pipelineStatus,
-  pipelineRunId,
   runId,
   onStarted,
 }: Props) {

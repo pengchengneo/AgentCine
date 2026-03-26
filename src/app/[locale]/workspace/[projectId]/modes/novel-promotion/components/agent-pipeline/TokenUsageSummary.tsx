@@ -2,20 +2,8 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronRight, Zap } from 'lucide-react'
-import type { StepInfo } from '../../hooks/usePipelineStatus'
-
-type TokenUsage = {
-  promptTokens: number
-  completionTokens: number
-  totalTokens: number
-}
-
-const STEP_LABELS: Record<string, string> = {
-  script_agent: '剧本分析',
-  art_director_agent: '美术生成',
-  storyboard_agent: '分镜生成',
-  producer_quality_check: '质量审核',
-}
+import type { TokenUsage, StepInfo } from '../../hooks/usePipelineStatus'
+import { STEP_LABELS } from './constants'
 
 const fmt = new Intl.NumberFormat()
 
@@ -40,7 +28,6 @@ export function TokenUsageSummary({ totalUsage, steps }: Props) {
         <div className="text-sm text-(--glass-text-tertiary)">暂无数据</div>
       ) : (
         <div className="space-y-2">
-          {/* Total */}
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4 text-amber-400" />
             <span className="text-lg font-semibold text-(--glass-text-primary)">
@@ -48,7 +35,6 @@ export function TokenUsageSummary({ totalUsage, steps }: Props) {
             </span>
           </div>
 
-          {/* Input / Output breakdown */}
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-lg bg-(--glass-bg-surface-strong) px-3 py-2">
               <div className="text-xs text-(--glass-text-tertiary)">输入</div>
@@ -64,7 +50,7 @@ export function TokenUsageSummary({ totalUsage, steps }: Props) {
             </div>
           </div>
 
-          {/* Per-step breakdown (collapsible) */}
+          {/* Per-step breakdown */}
           {stepsWithTokens.length > 0 && (
             <div>
               <button
