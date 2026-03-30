@@ -3,7 +3,7 @@ import { logError as _ulogError } from '@/lib/logging/core'
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useTranslations } from 'next-intl'
-import Navbar from '@/components/Navbar'
+import AppShell from '@/components/AppShell'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import TaskStatusInline from '@/components/task/TaskStatusInline'
 import { resolveTaskPresentationState } from '@/lib/task/presentation'
@@ -295,13 +295,9 @@ export default function WorkspacePage() {
   }
 
   return (
-    <div className="glass-page min-h-screen">
-      <div className="cinema-bg-warm-decor" />
-      {/* Header - 统一导航栏 */}
-      <Navbar />
-
+    <AppShell>
       {/* Main Content */}
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-8">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-8 cinema-fade-up">
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-[var(--glass-text-primary)] mb-2">{t('title')}</h1>
@@ -546,7 +542,7 @@ export default function WorkspacePage() {
             </span>
           </div>
         )}
-      </main>
+      </div>
 
       {/* Create Project Modal - 简化版，只有名称和描述 */}
       {showCreateModal && (
@@ -697,6 +693,6 @@ export default function WorkspacePage() {
         onConfirm={handleDeleteProject}
         onCancel={cancelDelete}
       />
-    </div>
+    </AppShell>
   )
 }

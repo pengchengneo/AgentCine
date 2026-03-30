@@ -5,7 +5,7 @@ import { apiFetch } from '@/lib/api-fetch'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useQueryClient } from '@tanstack/react-query'
-import Navbar from '@/components/Navbar'
+import AppShell from '@/components/AppShell'
 import { FolderSidebar } from './components/FolderSidebar'
 import { AssetGrid } from './components/AssetGrid'
 import { CharacterCreationModal, LocationCreationModal, CharacterEditModal, LocationEditModal } from '@/components/shared/assets'
@@ -341,9 +341,8 @@ export default function AssetHubPage() {
     }
 
     return (
-        <div className="glass-page min-h-screen">
-            <Navbar />
-            <div className="max-w-7xl mx-auto px-4 py-6">
+        <AppShell>
+            <div className="max-w-7xl mx-auto px-4 py-6 cinema-fade-up">
                 {/* 页面标题 */}
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold text-[var(--glass-text-primary)]">{t('title')}</h1>
@@ -516,6 +515,6 @@ export default function AssetHubPage() {
                     onSelect={handleVoiceSelect}
                 />
             )}
-        </div>
+        </AppShell>
     )
 }

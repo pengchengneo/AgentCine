@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useTranslations } from 'next-intl'
-import Navbar from '@/components/Navbar'
+import AppShell from '@/components/AppShell'
 import ApiConfigTab from './components/ApiConfigTab'
 import { AppIcon } from '@/components/ui/icons'
 import { useRouter } from '@/i18n/navigation'
@@ -32,12 +32,9 @@ export default function ProfilePage() {
   const noBillingText = t('openSourceNoBilling')
 
   return (
-    <div className="glass-page min-h-screen">
-      <div className="cinema-bg-warm-decor" />
-      <Navbar />
-
-      <main className="max-w-[1400px] mx-auto px-6 py-8">
-        <div className="flex gap-6 h-[calc(100vh-140px)]">
+    <AppShell>
+      <div className="max-w-[1400px] mx-auto px-6 py-8 cinema-fade-up">
+        <div className="flex gap-6 h-[calc(100vh-80px)]">
 
           {/* 左侧侧边栏 */}
           <div className="w-64 flex-shrink-0">
@@ -108,7 +105,7 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-      </main >
-    </div >
+      </div>
+    </AppShell>
   )
 }
