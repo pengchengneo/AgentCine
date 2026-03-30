@@ -8,7 +8,7 @@ const ALLOWLIST = new Set([
 ])
 
 function main() {
-  const output = execSync("rg --files src/app/api | rg 'route\\.ts$'", { encoding: 'utf8' })
+  const output = execSync("find src/app/api -name 'route.ts' -type f", { encoding: 'utf8' })
   const files = output
     .split('\n')
     .map((line) => line.trim())
@@ -18,7 +18,7 @@ function main() {
 
   for (const file of files) {
     if (ALLOWLIST.has(file)) continue
-    const hasApiHandler = execSync(`rg -n \"apiHandler\" ${JSON.stringify(file)} || true`, { encoding: 'utf8' }).trim().length > 0
+    const hasApiHandler = execSync(`grep -l "apiHandler" ${JSON.stringify(file)} || true`, { encoding: 'utf8' }).trim().length > 0
     if (!hasApiHandler) {
       missing.push(file)
     }

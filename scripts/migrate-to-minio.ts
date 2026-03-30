@@ -48,7 +48,7 @@ const LOG_LEVELS = { debug: 0, info: 1, warn: 2, error: 3 }
 function log(level: string, message: string, ...args: unknown[]) {
   if (LOG_LEVELS[level as keyof typeof LOG_LEVELS] >= LOG_LEVELS[CONFIG.options.logLevel as keyof typeof LOG_LEVELS]) {
     const timestamp = new Date().toISOString()
-    console[level === 'error' ? 'error' : 'log'](\`[\${timestamp}] [\${level.toUpperCase()}] \${message}\`, ...args)
+    console[level === 'error' ? 'error' : 'log'](`[${timestamp}] [${level.toUpperCase()}] ${message}`, ...args)
   }
 }
 
@@ -87,7 +87,7 @@ async function scanLocalFiles(dir: string, basePath = ''): Promise<Array<{localP
       }
     }
   } catch (err: unknown) {
-    log('warn', \`无法读取目录: \${dir}\`, (err as Error).message)
+    log('warn', `无法读取目录: ${dir}`, (err as Error).message)
   }
   
   return files
@@ -129,11 +129,11 @@ async function saveProgress(migratedKeys: Set<string>) {
 
 // ==================== 存储桶检查/创建 ====================
 async function ensureBucket() {
-  log('info', \`检查存储桶: \${CONFIG.minio.bucket}\`)
+  log('info', `检查存储桶: ${CONFIG.minio.bucket}`)
   
   const exists = await minioClient.bucketExists(CONFIG.minio.bucket)
   if (!exists) {
-    log('info', \`创建存储桶: \${CONFIG.minio.bucket}\`)
+    log('info', `创建存储桶: ${CONFIG.minio.bucket}`)
     await minioClient.makeBucket(CONFIG.minio.bucket, CONFIG.minio.region)
     
     // 设置存储桶为 public read (可选，根据需求)
@@ -144,7 +144,7 @@ async function ensureBucket() {
           Effect: 'Allow',
           Principal: { AWS: ['*'] },
           Action: ['s3:GetObject'],
-          Resource: [\`arn:aws:s3:::\${CONFIG.minio.bucket}/*\`]
+          Resource: [`arn:aws:s3:::${CONFIG.minio.bucket}/*`]
         }
       ]
     }
@@ -159,12 +159,12 @@ async function uploadFile(fileInfo: {localPath: string, key: string, size: numbe
   
   // 检查是否已迁移
   if (migratedKeys.has(key)) {
-    log('debug', \`跳过已迁移: \${key}\`)
+    log('debug', `跳过已迁移: ${key}`)
     return { status: 'skipped', key }
   }
   
   if (CONFIG.options.dryRun) {
-    log('info', \`[DRY RUN] 将上传: \${key} (\${formatBytes(size)})\`)
+    log('info', `[DRY RUN] 将上传: ${key} (${formatBytes(size)})`)
     return { status: 'dry_run', key }
   }
   
@@ -185,11 +185,11 @@ async function uploadFile(fileInfo: {localPath: string, key: string, size: numbe
     // 记录迁移成功
     migratedKeys.add(key)
     
-    log('info', \`✓ 上传成功: \${key} (\${formatBytes(size)})\`)
+    log('info', `✓ 上传成功: ${key} (${formatBytes(size)})`)
     return { status: 'success', key, size }
     
   } catch (err: unknown) {
-    log('error', \`✗ 上传失败: \${key}\`, (err as Error).message)
+    log('error', `✗ 上传失败: ${key}`, (err as Error).message)
     return { status: 'error', key, error: (err as Error).message }
   }
 }
@@ -251,17 +251,17 @@ async function main() {
   console.log()
   
   log('info', '配置信息:')
-  log('info', \`  本地目录: \${path.resolve(CONFIG.local.baseDir)}\`)
-  log('info', \`  MinIO: \${CONFIG.minio.endPoint}:\${CONFIG.minio.port}/\${CONFIG.minio.bucket}\`)
-  log('info', \`  并发数: \${CONFIG.options.concurrency}\`)
-  log('info', \`  干运行: \${CONFIG.options.dryRun}\`)
-  log('info', \`  断点续传: \${CONFIG.options.resume}\`)
+  log('info', `  本地目录: ${path.resolve(CONFIG.local.baseDir)}`)
+  log('info', `  MinIO: ${CONFIG.minio.endPoint}:${CONFIG.minio.port}/${CONFIG.minio.bucket}`)
+  log('info', `  并发数: ${CONFIG.options.concurrency}`)
+  log('info', `  干运行: ${CONFIG.options.dryRun}`)
+  log('info', `  断点续传: ${CONFIG.options.resume}`)
   console.log()
   
   // 1. 扫描本地文件
   log('info', '扫描本地文件...')
   const files = await scanLocalFiles(CONFIG.local.baseDir)
-  log('info', \`找到 \${files.length} 个文件\`)
+  log('info', `找到 ${files.length} 个文件`)
   
   if (files.length === 0) {
     log('info', '没有需要迁移的文件')
@@ -269,12 +269,12 @@ async function main() {
   }
   
   const totalSize = files.reduce((sum, f) => sum + f.size, 0)
-  log('info', \`总大小: \${formatBytes(totalSize)}\`)
+  log('info', `总大小: ${formatBytes(totalSize)}`)
   console.log()
   
   // 2. 加载进度
   const migratedKeys = await loadProgress()
-  log('info', \`已迁移: \${migratedKeys.size} 个文件\`)
+  log('info', `已迁移: ${migratedKeys.size} 个文件`)
   
   // 3. 确保存储桶存在
   await ensureBucket()
@@ -298,7 +298,7 @@ async function main() {
     if (processed % 10 === 0) {
       await saveProgress(migratedKeys)
       const progress = ((processed / files.length) * 100).toFixed(1)
-      log('info', \`进度: \${progress}% (\${processed}/\${files.length})\`)
+      log('info', `进度: ${progress}% (${processed}/${files.length})`)
     }
     
     return result
@@ -315,11 +315,11 @@ async function main() {
   console.log('╔══════════════════════════════════════════════════════════╗')
   console.log('║                      迁移完成                            ║')
   console.log('╠══════════════════════════════════════════════════════════╣')
-  console.log(\`║ 总文件数:    \${String(files.length).padEnd(39)} ║\`)
-  console.log(\`║ 成功:        \${String(success).padEnd(39)} ║\`)
-  console.log(\`║ 失败:        \${String(failed).padEnd(39)} ║\`)
-  console.log(\`║ 跳过:        \${String(skipped).padEnd(39)} ║\`)
-  console.log(\`║ 耗时:        \${String(duration + 's').padEnd(39)} ║\`)
+  console.log(`║ 总文件数:    ${String(files.length).padEnd(39)} ║`)
+  console.log(`║ 成功:        ${String(success).padEnd(39)} ║`)
+  console.log(`║ 失败:        ${String(failed).padEnd(39)} ║`)
+  console.log(`║ 跳过:        ${String(skipped).padEnd(39)} ║`)
+  console.log(`║ 耗时:        ${String(duration + 's').padEnd(39)} ║`)
   console.log('╚══════════════════════════════════════════════════════════╝')
   
   // 7. 后续步骤提示
