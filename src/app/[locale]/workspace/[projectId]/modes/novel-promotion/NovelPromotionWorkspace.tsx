@@ -12,7 +12,6 @@ import WorkspaceAssetLibraryModal from './components/WorkspaceAssetLibraryModal'
 import WorkspaceHeaderShell from './components/WorkspaceHeaderShell'
 import { AgentPipelineDashboard } from './components/agent-pipeline/AgentPipelineDashboard'
 import { AgentModeToggle } from './components/agent-pipeline/AgentModeToggle'
-import { NavbarCenterPortal } from '@/components/NavbarCenterPortal'
 import { ReviewPanel } from './components/ReviewPanel'
 import { WorkspaceStageRuntimeProvider } from './WorkspaceStageRuntimeContext'
 import { useNovelPromotionWorkspaceController } from './hooks/useNovelPromotionWorkspaceController'
@@ -89,9 +88,9 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
     <div>
       <AnimatedBackground />
 
-      <NavbarCenterPortal>
+      <div className="flex justify-end mb-2 px-6">
         <AgentModeToggle isAgentMode={isAgentMode} onToggle={handleToggleMode} />
-      </NavbarCenterPortal>
+      </div>
 
       <WorkspaceHeaderShell
         isSettingsModalOpen={vm.ui.isSettingsModalOpen}

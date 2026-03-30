@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useQueryClient } from '@tanstack/react-query'
-import Navbar from '@/components/Navbar'
+import AppShell from '@/components/AppShell'
 import TaskStatusInline from '@/components/task/TaskStatusInline'
 import { useProjectData, useEpisodeData, useUserModels } from '@/lib/query/hooks'
 import { queryKeys } from '@/lib/query/keys'
@@ -343,21 +343,19 @@ export default function ProjectDetailPage() {
 
   if (isInitializing) {
     return (
-      <div className="glass-page min-h-screen">
-        <Navbar />
-        <main className="flex items-center justify-center h-[calc(100vh-64px)]">
+      <AppShell noWarmDecor noBokeh>
+        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
           <div className="text-[var(--glass-text-secondary)]">{tc('loading')}</div>
-        </main>
-      </div>
+        </div>
+      </AppShell>
     )
   }
 
   // Error状态
   if (error || !project) {
     return (
-      <div className="glass-page min-h-screen">
-        <Navbar />
-        <main className="container mx-auto px-4 py-8">
+      <AppShell noWarmDecor noBokeh>
+        <div className="container mx-auto px-4 py-8">
           <div className="glass-surface p-6 text-center">
             <p className="text-[var(--glass-tone-danger-fg)] mb-4">{error || t('projectNotFound')}</p>
             <button
@@ -367,19 +365,18 @@ export default function ProjectDetailPage() {
               {t('backToWorkspace')}
             </button>
           </div>
-        </main>
-      </div>
+        </div>
+      </AppShell>
     )
   }
 
   return (
-    <div className="glass-page min-h-screen flex flex-col">
-      <Navbar />
+    <AppShell noWarmDecor noBokeh>
 
       {/* V3 UI: 浮动导航替代了旧的 Sidebar */}
 
       {/* 主内容区 - 占满全部宽度 */}
-      <main className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
         <div className="container mx-auto px-4 py-8">
           {isGlobalAssetsView && project.novelPromotionData ? (
             // 全局资产视图（确保数据准备好）
@@ -523,7 +520,7 @@ export default function ProjectDetailPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   )
 }
