@@ -1,31 +1,83 @@
 {
   "title": "AgentCine",
   "subtitle": "AI-Powered Novel to Movie, Full-Workflow Film Creation",
+  "heroTagline": "Next Generation AI Film Platform",
   "enterWorkspace": "Enter Workspace",
   "loading": "Loading...",
   "getStarted": "Get Started",
   "learnMore": "Learn More",
+  "watchDemo": "Watch Demo",
   "features": {
     "title": "Unleash Infinite Creativity",
     "subtitle": "Full-process AI assistance, from script to final cut",
     "script": {
       "title": "AI Script Breakdown",
-      "description": "Deep understanding of literary works, intelligently extracting characters, dialogues, and action scenes"
+      "description": "Deep understanding of literary works, intelligently extracting characters, dialogues, and action scenes",
+      "detail": "Upload your novel or literary work, and AI will automatically analyze story structure, extract key character relationships, plot twists, and dialogue scenes. Supports multilingual text with intelligent narrative pacing recognition, transforming long-form text into professional screenplay format.",
+      "highlights": {
+        "h1": "Smart character recognition & relationship mapping",
+        "h2": "Automatic scene segmentation & plot analysis",
+        "h3": "Multi-language literary work parsing"
+      }
     },
     "storyboard": {
       "title": "AI Storyboard Generation",
-      "description": "Precisely matching visual styles, generating cinematic storyboard frames with one click"
+      "description": "Precisely matching visual styles, generating cinematic storyboard frames with one click",
+      "detail": "Based on script content, AI automatically generates high-quality cinematic storyboards. Switch between multiple visual styles — from realism to cyberpunk, watercolor to black-and-white film. Every frame is carefully calibrated for composition, lighting, and color.",
+      "highlights": {
+        "h1": "One-click visual style switching",
+        "h2": "Cinematic composition & lighting design",
+        "h3": "Smart character consistency"
+      }
     },
     "oneClickMovie": {
       "title": "One-Click Movie",
-      "description": "AI-driven audiovisual fusion, instantly transforming text into high-quality film works"
+      "description": "AI-driven audiovisual fusion, instantly transforming text into high-quality film works",
+      "detail": "From storyboard to final film, just one click. AI automatically arranges visual pacing, blends voiceover, background music, and sound effects to produce professional-quality video. Supports multiple resolution outputs for cross-platform publishing.",
+      "highlights": {
+        "h1": "Smart pacing & transition arrangement",
+        "h2": "AI voiceover & soundtrack integration",
+        "h3": "Multi-resolution output, all platforms"
+      }
     },
     "oneClickEdit": {
       "title": "One-Click Editing",
-      "description": "Intelligent rhythm control, automatically completing cutting, color grading, and VFX synthesis"
+      "description": "Intelligent rhythm control, automatically completing cutting, color grading, and VFX synthesis",
+      "detail": "Built-in professional video editor with AI-powered cut point detection, cinematic color grading, subtitle placement, and effects. Fine-tune every frame manually for complete creative control.",
+      "highlights": {
+        "h1": "AI smart cut point detection",
+        "h2": "Cinematic color grading & VFX",
+        "h3": "Visual timeline for precise editing"
+      }
     }
   },
+  "workflow": {
+    "title": "Four Steps to Your Film Dream",
+    "subtitle": "From inspiration to final cut, fully AI-driven",
+    "step1": { "title": "Upload Novel", "desc": "Import your literary work" },
+    "step2": { "title": "AI Breakdown", "desc": "Auto-generate script & storyboard" },
+    "step3": { "title": "Smart Synthesis", "desc": "One-click full video generation" },
+    "step4": { "title": "Fine Tuning", "desc": "Edit, color grade, export" }
+  },
+  "showcase": {
+    "title": "Creators Are Using AgentCine",
+    "subtitle": "From short films to features, sci-fi to art house — infinite possibilities",
+    "stat1": { "value": "10x", "label": "Productivity Boost" },
+    "stat2": { "value": "4K", "label": "Output Quality" },
+    "stat3": { "value": "30s", "label": "Avg. Render Speed" },
+    "stat4": { "value": "∞", "label": "Creative Possibilities" }
+  },
+  "cta": {
+    "title": "Ready to Create Your",
+    "titleHighlight": "First Masterpiece?",
+    "subtitle": "Join AgentCine and turn your stories into cinema with AI",
+    "noCC": "No Credit Card Required",
+    "instant": "Instant Access"
+  },
   "footer": {
-    "copyright": "2026 AgentCine AI. All rights reserved."
+    "copyright": "2026 AgentCine AI. All rights reserved.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "docs": "Documentation"
   }
 }

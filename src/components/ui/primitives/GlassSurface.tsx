@@ -36,7 +36,7 @@ export default function GlassSurface({
         variantClass,
         densityClass,
         padded ? 'p-4 md:p-6' : '',
-        interactive ? 'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--glass-shadow-md)]' : '',
+        interactive ? 'cinema-hover-glow transition-all duration-200 hover:-translate-y-0.5' : '',
         className
       )}
     >

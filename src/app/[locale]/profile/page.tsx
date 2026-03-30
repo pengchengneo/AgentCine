@@ -33,6 +33,7 @@ export default function ProfilePage() {
 
   return (
     <div className="glass-page min-h-screen">
+      <div className="cinema-bg-warm-decor" />
       <Navbar />
 
       <main className="max-w-[1400px] mx-auto px-6 py-8">
