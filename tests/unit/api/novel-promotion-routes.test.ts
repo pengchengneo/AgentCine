@@ -131,7 +131,7 @@ const prismaMock = vi.hoisted(() => ({
   globalVoice: { findFirst: vi.fn() },
   pipelineReviewItem: { count: vi.fn() },
   $transaction: vi.fn((arg: unknown) => {
-    if (typeof arg === 'function') return (arg as Function)(prismaMock)
+    if (typeof arg === 'function') return (arg as (db: unknown) => unknown)(prismaMock)
     if (Array.isArray(arg)) return Promise.all(arg)
     return Promise.resolve()
   }),
@@ -194,7 +194,7 @@ vi.mock('@/lib/logging/core', () => ({
 }))
 
 vi.mock('@/lib/logging/context', () => ({
-  withLogContext: vi.fn((_ctx: unknown, fn: Function) => fn()),
+  withLogContext: vi.fn((_ctx: unknown, fn: () => unknown) => fn()),
 }))
 
 vi.mock('@/lib/media/attach', () => ({
@@ -484,7 +484,7 @@ function resetMocks() {
     }
   }
   prismaMock.$transaction.mockImplementation((arg: unknown) => {
-    if (typeof arg === 'function') return (arg as Function)(prismaMock)
+    if (typeof arg === 'function') return (arg as (db: unknown) => unknown)(prismaMock)
     if (Array.isArray(arg)) return Promise.all(arg)
     return Promise.resolve()
   })

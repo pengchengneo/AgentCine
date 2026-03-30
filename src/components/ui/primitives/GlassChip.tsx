@@ -31,7 +31,7 @@ export default function GlassChip({ tone = 'neutral', icon, onRemove, children, 
         <button
           type="button"
           onClick={onRemove}
-          className="rounded-full p-0.5 transition-colors hover:bg-black/10"
+          className="rounded-full p-0.5 transition-colors hover:bg-[var(--glass-tone-neutral-bg)]"
           aria-label="remove"
         >
           <AppIcon name="close" className="h-3 w-3" />

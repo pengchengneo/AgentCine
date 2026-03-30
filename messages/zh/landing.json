@@ -1,31 +1,83 @@
 {
   "title": "AgentCine",
   "subtitle": "小说AI一键成片，影视创作全流程工作流",
+  "heroTagline": "下一代 AI 影视创作平台",
   "enterWorkspace": "进入工作区",
   "loading": "加载中...",
   "getStarted": "立即体验",
   "learnMore": "了解更多",
+  "watchDemo": "观看演示",
   "features": {
     "title": "释放无限创造力",
     "subtitle": "全流程 AI 辅助，从剧本到成片",
     "script": {
       "title": "小说AI拆分剧本",
-      "description": "深度理解文学作品，智能提取角色、对白与动作场景"
+      "description": "深度理解文学作品，智能提取角色、对白与动作场景",
+      "detail": "上传你的小说或文学作品，AI 将自动分析故事结构，提取关键角色关系、情节转折和对白场景。支持中英文文本，智能识别叙事节奏，将长篇文字拆解为专业的电影剧本格式。",
+      "highlights": {
+        "h1": "智能角色识别与关系图谱",
+        "h2": "自动场景分割与情节梳理",
+        "h3": "支持多语种文学作品解析"
+      }
     },
     "storyboard": {
       "title": "剧本AI生成分镜",
-      "description": "精准匹配视觉风格，一键生成电影感十足的分镜画面"
+      "description": "精准匹配视觉风格，一键生成电影感十足的分镜画面",
+      "detail": "基于剧本内容，AI 自动生成高质量电影分镜。支持多种视觉风格切换——从写实主义到赛博朋克，从水彩风到黑白电影。每一帧都经过构图、光影和色彩精心调校。",
+      "highlights": {
+        "h1": "多种视觉风格一键切换",
+        "h2": "电影级构图与光影设计",
+        "h3": "角色一致性智能保持"
+      }
     },
     "oneClickMovie": {
       "title": "一键成片",
-      "description": "AI 驱动的视听融合，将文字瞬间转化为高质量影视作品"
+      "description": "AI 驱动的视听融合，将文字瞬间转化为高质量影视作品",
+      "detail": "从分镜到成片，只需一键。AI 自动编排画面节奏，融合配音、背景音乐和音效，生成具有专业质感的视频作品。支持多种分辨率输出，满足不同平台发布需求。",
+      "highlights": {
+        "h1": "智能画面节奏与转场编排",
+        "h2": "AI 配音与背景音乐融合",
+        "h3": "多分辨率输出，全平台适配"
+      }
     },
     "oneClickEdit": {
       "title": "一键剪辑",
-      "description": "智能节奏把控，自动完成剪接、调色与特效合成"
+      "description": "智能节奏把控，自动完成剪接、调色与特效合成",
+      "detail": "内置专业级视频编辑器，AI 自动识别最佳剪切点，智能调色匹配电影色调，添加字幕和特效。支持手动微调每一帧，给你完整的创作控制权。",
+      "highlights": {
+        "h1": "AI 智能剪切点识别",
+        "h2": "电影级调色与特效合成",
+        "h3": "可视化时间线精细编辑"
+      }
     }
   },
+  "workflow": {
+    "title": "四步完成你的电影梦",
+    "subtitle": "从灵感到成品，全程 AI 驱动",
+    "step1": { "title": "上传小说", "desc": "导入你的文学作品" },
+    "step2": { "title": "AI 拆解", "desc": "自动生成剧本与分镜" },
+    "step3": { "title": "智能合成", "desc": "一键生成完整影片" },
+    "step4": { "title": "精细调整", "desc": "编辑、调色、导出" }
+  },
+  "showcase": {
+    "title": "创作者们正在使用 AgentCine",
+    "subtitle": "从短片到长片，从科幻到文艺，无限可能",
+    "stat1": { "value": "10x", "label": "创作效率提升" },
+    "stat2": { "value": "4K", "label": "影片输出品质" },
+    "stat3": { "value": "30s", "label": "平均成片速度" },
+    "stat4": { "value": "∞", "label": "创意可能性" }
+  },
+  "cta": {
+    "title": "准备好创作你的",
+    "titleHighlight": "第一部杰作了吗？",
+    "subtitle": "加入 AgentCine，用 AI 将你的故事变为影像",
+    "noCC": "无需信用卡",
+    "instant": "即刻开始"
+  },
   "footer": {
-    "copyright": "2026 AgentCine AI. All rights reserved."
+    "copyright": "2026 AgentCine AI. All rights reserved.",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "docs": "文档"
   }
 }

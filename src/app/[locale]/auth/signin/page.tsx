@@ -42,11 +42,13 @@ export default function SignIn() {
   }
 
   return (
-    <div className="glass-page min-h-screen">
+    <div className="glass-page min-h-screen cinema-vignette cinema-grain">
       <Navbar />
-      <div className="flex items-center justify-center px-4 py-12">
-        <div className="max-w-md w-full">
-          <div className="glass-surface-modal p-8">
+      <div className="cinema-bg-warm-decor" />
+      <div className="flex items-center justify-center px-4 py-12 relative z-10">
+        <div className="max-w-md w-full cinema-fade-up">
+          <div className="glass-surface-modal p-8 overflow-hidden">
+            <div className="h-1 w-full bg-gradient-to-r from-[var(--glass-accent-from)] via-[var(--glass-accent-via)] to-[var(--glass-accent-to)] rounded-t-full -mt-8 mb-8 -mx-8 w-[calc(100%+4rem)]" />
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-[var(--glass-text-primary)] mb-2">
                 {t('welcomeBack')}
