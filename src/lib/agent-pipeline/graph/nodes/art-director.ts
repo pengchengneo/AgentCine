@@ -44,7 +44,31 @@ export async function runArtDirectorAgent(
   state.styleProfile = styleProfile
   await log(`风格配置: ${novelData.artStyle || 'default'}`)
 
-  // Step 2: Generate character images
+  // Step 2a: Ensure character appearances exist (generate visual profiles)
+  const unconfirmedChars = await prisma.novelPromotionCharacter.findMany({
+    where: {
+      novelPromotionProjectId: novelData.id,
+      profileConfirmed: false,
+      profileData: { not: null },
+    },
+    select: { id: true, name: true },
+  })
+  if (unconfirmedChars.length > 0) {
+    await log(`为 ${unconfirmedChars.length} 个角色生成视觉描述`)
+    const profileResult = await submitTask({
+      userId: state.userId,
+      locale: 'zh',
+      projectId: state.projectId,
+      type: TASK_TYPE.CHARACTER_PROFILE_BATCH_CONFIRM,
+      targetType: 'NovelPromotionProject',
+      targetId: novelData.id,
+      payload: { pipelineRunId: state.pipelineRunId },
+    })
+    await waitForMultipleTasksCompletion([profileResult.taskId], state.projectId)
+    await log('角色视觉描述生成完成')
+  }
+
+  // Step 2b: Generate character images
   const characters = await getCharacterAssets(novelData.id)
   const charsToGenerate = characters.filter((c) => !c.imageUrl)
   await log(`准备生成 ${charsToGenerate.length} 个角色图片 (image_character)`)

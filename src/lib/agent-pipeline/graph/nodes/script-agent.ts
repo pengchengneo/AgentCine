@@ -61,15 +61,15 @@ export async function runScriptAgent(
 
   await log(`提取到 ${characters.length} 个角色、${locations.length} 个场景`)
 
-  // Step 4: Auto-generate promptFragments from appearance descriptions
+  // Step 4: Auto-generate promptFragments from appearance descriptions (skip locked assets)
   for (const char of characters) {
     const desc = char.appearances[0]?.description
-    if (desc && !char.promptFragment) {
+    if (desc && !char.promptFragment && char.assetStatus !== 'locked') {
       await updatePromptFragment('character', char.id, desc)
     }
   }
   for (const loc of locations) {
-    if (loc.summary && !loc.promptFragment) {
+    if (loc.summary && !loc.promptFragment && loc.assetStatus !== 'locked') {
       await updatePromptFragment('location', loc.id, loc.summary)
     }
   }

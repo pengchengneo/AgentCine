@@ -2,7 +2,7 @@ import path from 'node:path'
 import { createScopedLogger } from '@/lib/logging/core'
 import { resolveStorageKeyFromMediaValue } from '@/lib/media/service'
 
-type StorageHelpers = Pick<typeof import('@/lib/storage'), 'getSignedUrl' | 'toFetchableUrl'>
+type StorageHelpers = Pick<typeof import('@/lib/storage'), 'getSignedUrl' | 'getSignedObjectUrl' | 'toFetchableUrl'>
 
 type InputIssueReason =
   | 'next_image_unwrapped'
@@ -89,6 +89,7 @@ async function getStorageHelpers(): Promise<StorageHelpers> {
   if (!storageHelpersPromise) {
     storageHelpersPromise = import('@/lib/storage').then((mod) => ({
       getSignedUrl: mod.getSignedUrl,
+      getSignedObjectUrl: mod.getSignedObjectUrl,
       toFetchableUrl: mod.toFetchableUrl,
     }))
   }
@@ -165,16 +166,17 @@ function toUrlMaybe(value: string): URL | null {
 
 function guessContentType(input: string, contentTypeHeader: string | null): string {
   const headerType = contentTypeHeader?.split(';')[0]?.trim()
-  if (headerType) return headerType
+  // Ignore generic octet-stream — fall through to extension-based lookup
+  if (headerType && headerType !== DEFAULT_CONTENT_TYPE) return headerType
   const parsed = toUrlMaybe(input)
   const pathname = parsed?.pathname ?? input
   const ext = path.extname(pathname).toLowerCase()
-  return MIME_BY_EXT[ext] || DEFAULT_CONTENT_TYPE
+  return MIME_BY_EXT[ext] || headerType || DEFAULT_CONTENT_TYPE
 }
 
 async function signStorageKey(storageKey: string): Promise<string> {
-  const { getSignedUrl, toFetchableUrl } = await getStorageHelpers()
-  return toFetchableUrl(getSignedUrl(storageKey, SIGNED_URL_TTL_SECONDS))
+  const { getSignedObjectUrl } = await getStorageHelpers()
+  return await getSignedObjectUrl(storageKey, SIGNED_URL_TTL_SECONDS)
 }
 
 async function toFetchableAbsoluteUrl(value: string): Promise<string> {

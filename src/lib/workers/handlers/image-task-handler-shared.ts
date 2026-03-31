@@ -187,8 +187,9 @@ export function findCharacterByName<T extends { name: string }>(characters: T[],
 export async function collectPanelReferenceImages(projectData: NovelProjectData, panel: PanelLike) {
   const refs: string[] = []
 
-  const sketch = toSignedUrlIfCos(panel.sketchImageUrl, 3600)
-  if (sketch) refs.push(sketch)
+  // Pass raw storage keys — normalizeReferenceImagesForGeneration handles signing
+  // via getSignedObjectUrl (direct MinIO presigned URLs that work in worker context)
+  if (panel.sketchImageUrl) refs.push(panel.sketchImageUrl)
 
   const panelCharacters = parsePanelCharacterReferences(panel.characters)
   for (const item of panelCharacters) {
@@ -208,8 +209,7 @@ export async function collectPanelReferenceImages(projectData: NovelProjectData,
     const selectedIndex = appearance.selectedIndex
     const selectedUrl = selectedIndex !== null && selectedIndex !== undefined ? imageUrls[selectedIndex] : null
     const key = selectedUrl || imageUrls[0] || appearance.imageUrl
-    const signed = toSignedUrlIfCos(key, 3600)
-    if (signed) refs.push(signed)
+    if (key) refs.push(key)
   }
 
   if (panel.location) {
@@ -217,8 +217,7 @@ export async function collectPanelReferenceImages(projectData: NovelProjectData,
     if (location) {
       const images = location.images || []
       const selected = images.find((img) => img.isSelected) || images[0]
-      const signed = toSignedUrlIfCos(selected?.imageUrl, 3600)
-      if (signed) refs.push(signed)
+      if (selected?.imageUrl) refs.push(selected.imageUrl)
     }
   }
 
