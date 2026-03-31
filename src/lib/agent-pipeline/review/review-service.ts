@@ -1,8 +1,22 @@
 // src/lib/agent-pipeline/review/review-service.ts
 
 import { prisma } from '@/lib/prisma'
+import { resolveMediaRef } from '@/lib/media/service'
 import { REVIEW_STATUS } from '../types'
 import type { ReviewItemInput, ReviewSummary } from './types'
+
+export type EnrichedReviewItem = {
+  id: string
+  phase: string
+  targetType: string
+  targetId: string
+  status: string
+  score: number | null
+  feedback: string | null
+  retryCount: number
+  targetName: string | null
+  targetImageUrl: string | null
+}
 
 export async function createReviewItems(items: ReviewItemInput[]): Promise<void> {
   for (const item of items) {
@@ -64,6 +78,64 @@ export async function getReviewItemsByRun(
     },
     orderBy: { createdAt: 'asc' },
   })
+}
+
+export async function enrichReviewItems(
+  items: Array<{
+    id: string; phase: string; targetType: string; targetId: string
+    status: string; score: number | null; feedback: string | null; retryCount: number
+  }>,
+): Promise<EnrichedReviewItem[]> {
+  return Promise.all(items.map(async (item) => {
+    let targetName: string | null = null
+    let targetImageUrl: string | null = null
+
+    try {
+      if (item.targetType === 'character') {
+        const character = await prisma.novelPromotionCharacter.findUnique({
+          where: { id: item.targetId },
+          include: { appearances: { orderBy: { appearanceIndex: 'asc' }, take: 1 } },
+        })
+        if (character) {
+          targetName = character.name
+          const app = character.appearances[0]
+          if (app) {
+            const media = await resolveMediaRef(app.imageMediaId, app.imageUrl)
+            targetImageUrl = media?.url ?? null
+          }
+        }
+      } else if (item.targetType === 'location') {
+        const location = await prisma.novelPromotionLocation.findUnique({
+          where: { id: item.targetId },
+          include: {
+            selectedImage: true,
+            images: { orderBy: { imageIndex: 'asc' }, take: 1 },
+          },
+        })
+        if (location) {
+          targetName = location.name
+          const img = location.selectedImage ?? location.images[0]
+          if (img) {
+            const media = await resolveMediaRef(img.imageMediaId, img.imageUrl)
+            targetImageUrl = media?.url ?? null
+          }
+        }
+      } else if (item.targetType === 'panel') {
+        const panel = await prisma.novelPromotionPanel.findUnique({
+          where: { id: item.targetId },
+        })
+        if (panel) {
+          targetName = panel.panelNumber != null ? `#${panel.panelNumber}` : `Panel ${panel.panelIndex + 1}`
+          const media = await resolveMediaRef(panel.imageMediaId, panel.imageUrl)
+          targetImageUrl = media?.url ?? null
+        }
+      }
+    } catch {
+      // Silently fall back to no enrichment for this item
+    }
+
+    return { ...item, targetName, targetImageUrl }
+  }))
 }
 
 export async function getReviewSummary(pipelineRunId: string): Promise<ReviewSummary> {

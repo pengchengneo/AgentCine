@@ -11,6 +11,7 @@ interface WorkspaceTopActionsProps {
   assetLibraryLabel: string
   settingsLabel: string
   refreshTitle: string
+  headerSlot?: React.ReactNode
 }
 
 export default function WorkspaceTopActions({
@@ -20,6 +21,7 @@ export default function WorkspaceTopActions({
   assetLibraryLabel,
   settingsLabel,
   refreshTitle,
+  headerSlot,
 }: WorkspaceTopActionsProps) {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const { showToast } = useToast()
@@ -43,7 +45,8 @@ export default function WorkspaceTopActions({
   }, [isRefreshing, onRefresh, refreshTitle, showToast])
 
   return (
-    <div className="fixed top-24 right-6 z-40 flex gap-3">
+    <div className="fixed top-4 right-6 z-40 flex items-center gap-3">
+      {headerSlot}
       <button
         onClick={onOpenAssetLibrary}
         className="glass-btn-base glass-btn-secondary flex items-center gap-2 px-4 py-3 rounded-3xl text-[var(--glass-text-primary)]"

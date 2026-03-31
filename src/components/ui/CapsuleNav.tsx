@@ -133,7 +133,7 @@ export function CapsuleNav({ items, activeId, onItemClick, projectId, episodeId 
     }
 
     return (
-        <nav className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-fadeInDown">
+        <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-fadeInDown">
             <div
                 className="flex rounded-full px-2 py-1"
                 style={{
@@ -215,7 +215,7 @@ export function EpisodeSelector({
     if (!currentEp) return null
 
     return (
-        <div className="fixed top-20 left-6 z-[60]" ref={menuRef}>
+        <div className="fixed top-4 left-6 z-[60]" ref={menuRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="glass-btn-base glass-btn-secondary flex items-center gap-3 px-4 py-3 transition-all group"

@@ -33,5 +33,46 @@
     "before": "No models configured yet. Please go to",
     "link": "Settings Center",
     "after": "to configure models, or customize them in project settings after creation."
-  }
+  },
+  "quickCreate": {
+    "placeholder": "Describe what you want to create, e.g., a campus romance short drama...",
+    "submit": "Start Creating",
+    "creating": "Creating..."
+  },
+  "templates": {
+    "sectionTitle": "Start from Template",
+    "shortDrama": {
+      "name": "AI Short Drama",
+      "description": "Quickly generate short drama videos for social media platforms"
+    },
+    "comicMv": {
+      "name": "Comic MV",
+      "description": "Combine music with comic panels to create stunning comic MVs"
+    },
+    "storybook": {
+      "name": "Storybook",
+      "description": "Generate beautiful illustrations for children's books or story series"
+    },
+    "adClip": {
+      "name": "Ad Clip",
+      "description": "Create creative animated ads for brand promotion"
+    },
+    "novelPromo": {
+      "name": "Novel Promo",
+      "description": "Convert novels into video promos to attract readers"
+    },
+    "custom": {
+      "name": "Custom Project",
+      "description": "Start from scratch with full creative freedom"
+    }
+  },
+  "projectCard": {
+    "status": {
+      "draft": "Draft",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    },
+    "open": "Open Project"
+  },
+  "recentProjects": "Recent Projects"
 }

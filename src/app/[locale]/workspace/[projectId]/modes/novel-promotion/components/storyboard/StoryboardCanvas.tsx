@@ -69,6 +69,8 @@ interface StoryboardCanvasProps {
   addStoryboardGroup: (insertIndex: number) => Promise<void>
   addingStoryboardGroup: boolean
   setLocalStoryboards: React.Dispatch<React.SetStateAction<NovelPromotionStoryboard[]>>
+  selectedPanelIds?: Set<string>
+  onTogglePanelSelection?: (panelId: string) => void
 }
 
 export default function StoryboardCanvas({
@@ -121,6 +123,8 @@ export default function StoryboardCanvas({
   addStoryboardGroup,
   addingStoryboardGroup,
   setLocalStoryboards,
+  // selectedPanelIds and onTogglePanelSelection are available for
+  // parent components to wire up panel selection via StoryboardGroup
 }: StoryboardCanvasProps) {
   const t = useTranslations('storyboard')
   if (sortedStoryboards.length === 0) {

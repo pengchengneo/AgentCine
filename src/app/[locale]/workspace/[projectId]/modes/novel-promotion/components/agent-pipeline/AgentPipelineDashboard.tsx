@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react'
 import { usePipelineStatus } from '../../hooks/usePipelineStatus'
 import { PipelineActionBar } from './PipelineActionBar'
 import { WorkflowTimeline } from './WorkflowTimeline'
-import { ActiveTaskIndicator } from './ActiveTaskIndicator'
 import { TokenUsageSummary } from './TokenUsageSummary'
 import { PipelineLogStream } from './PipelineLogStream'
 
@@ -51,13 +50,8 @@ export function AgentPipelineDashboard({
       <WorkflowTimeline
         steps={data?.steps}
         currentPhase={data?.currentPhase}
-      />
-
-      <div className="glass-divider" />
-
-      <ActiveTaskIndicator
         activeTask={data?.activeTask}
-        currentPhase={data?.currentPhase}
+        logs={data?.logs}
       />
 
       <div className="glass-divider" />

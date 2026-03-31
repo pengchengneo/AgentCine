@@ -33,5 +33,46 @@
     "before": "检测到尚未配置模型，请先前往",
     "link": "设置中心",
     "after": "配置模型，或在创建项目后于项目配置中自定义。"
-  }
+  },
+  "quickCreate": {
+    "placeholder": "描述你想创作的内容，例如：一个关于校园青春的短剧...",
+    "submit": "开始创作",
+    "creating": "创建中..."
+  },
+  "templates": {
+    "sectionTitle": "从模板开始",
+    "shortDrama": {
+      "name": "AI 短剧",
+      "description": "快速生成短剧视频，适合抖音、快手等平台"
+    },
+    "comicMv": {
+      "name": "漫画 MV",
+      "description": "将音乐与漫画画面结合，生成精美漫画MV"
+    },
+    "storybook": {
+      "name": "故事绘本",
+      "description": "生成精美插画，适合儿童绘本或故事连载"
+    },
+    "adClip": {
+      "name": "广告短片",
+      "description": "制作创意广告动画，适合品牌推广"
+    },
+    "novelPromo": {
+      "name": "小说推文",
+      "description": "将小说转化为视频推文，吸引读者关注"
+    },
+    "custom": {
+      "name": "自定义项目",
+      "description": "从空白开始，自由定义项目内容"
+    }
+  },
+  "projectCard": {
+    "status": {
+      "draft": "草稿",
+      "inProgress": "制作中",
+      "completed": "已完成"
+    },
+    "open": "打开项目"
+  },
+  "recentProjects": "近期项目"
 }
