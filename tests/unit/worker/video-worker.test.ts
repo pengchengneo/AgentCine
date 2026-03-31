@@ -29,6 +29,7 @@ const utilsMock = vi.hoisted(() => ({
   resolveLipSyncVideoSource: vi.fn(async () => 'https://provider.example/lipsync.mp4'),
   resolveVideoSourceFromGeneration: vi.fn<(...args: unknown[]) => Promise<{ url: string; downloadHeaders?: Record<string, string> }>>(async () => ({ url: 'https://provider.example/video.mp4' })),
   toSignedUrlIfCos: vi.fn((url: string | null) => (url ? `https://signed.example/${url}` : null)),
+  toDirectSignedUrl: vi.fn(async (url: string | null) => (url ? `https://signed.example/${url}` : null)),
   uploadVideoSourceToCos: vi.fn(async () => 'cos/lip-sync/video.mp4'),
 }))
 const configServiceMock = vi.hoisted(() => ({
