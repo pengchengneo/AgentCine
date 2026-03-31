@@ -113,17 +113,21 @@ export const GET = apiHandler(async (request: NextRequest) => {
     costsByProject.map(item => [item.projectId, toMoneyNumber(item._sum.cost)])
   )
 
-  // 构建统计映射表 + 第一集预览
-  const statsMap = new Map<string, { episodes: number; images: number; videos: number; panels: number; firstEpisodePreview: string | null }>(
+  // 构建统计映射表 + 第一集预览 + 缩略图
+  const statsMap = new Map<string, { episodes: number; images: number; videos: number; panels: number; firstEpisodePreview: string | null; thumbnailUrl: string | null }>(
     novelProjects.map(np => {
       let imageCount = 0
       let videoCount = 0
       let panelCount = 0
+      let thumbnailUrl: string | null = null
       for (const ep of np.episodes) {
         for (const sb of ep.storyboards) {
           panelCount += sb._count.panels
           for (const panel of sb.panels) {
-            if (panel.imageUrl) imageCount++
+            if (panel.imageUrl) {
+              imageCount++
+              if (!thumbnailUrl) thumbnailUrl = panel.imageUrl
+            }
             if (panel.videoUrl) videoCount++
           }
         }
@@ -136,15 +140,23 @@ export const GET = apiHandler(async (request: NextRequest) => {
         images: imageCount,
         videos: videoCount,
         panels: panelCount,
-        firstEpisodePreview: preview}]
+        firstEpisodePreview: preview,
+        thumbnailUrl}]
     })
   )
 
   // 合并项目、费用与统计
-  const projectsWithStats = projects.map(project => ({
-    ...project,
-    totalCost: costMap.get(project.id) ?? 0,
-    stats: statsMap.get(project.id) ?? { episodes: 0, images: 0, videos: 0, panels: 0, firstEpisodePreview: null }}))
+  const projectsWithStats = projects.map(project => {
+    const stats = statsMap.get(project.id)
+    return {
+      ...project,
+      totalCost: costMap.get(project.id) ?? 0,
+      thumbnailUrl: stats?.thumbnailUrl ?? null,
+      stats: stats
+        ? { episodes: stats.episodes, images: stats.images, videos: stats.videos, panels: stats.panels, firstEpisodePreview: stats.firstEpisodePreview }
+        : { episodes: 0, images: 0, videos: 0, panels: 0, firstEpisodePreview: null },
+    }
+  })
 
   return NextResponse.json({
     projects: projectsWithStats,

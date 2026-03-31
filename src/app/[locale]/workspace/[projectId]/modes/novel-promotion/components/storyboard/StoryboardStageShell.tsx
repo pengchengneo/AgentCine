@@ -4,6 +4,7 @@ import { ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
 import type { TaskPresentationState } from '@/lib/task/presentation'
 import TaskStatusInline from '@/components/task/TaskStatusInline'
+import { BatchOperationsBar } from './BatchOperationsBar'
 
 interface StoryboardStageShellProps {
   children: ReactNode
@@ -11,6 +12,12 @@ interface StoryboardStageShellProps {
   isNextDisabled: boolean
   transitioningState: TaskPresentationState | null
   onNext: () => void
+  selectedPanelIds?: Set<string>
+  onSelectAll?: () => void
+  onDeselectAll?: () => void
+  onRegenerateSelected?: () => void
+  onDeleteSelected?: () => void
+  isBatchProcessing?: boolean
 }
 
 export default function StoryboardStageShell({
@@ -19,12 +26,31 @@ export default function StoryboardStageShell({
   isNextDisabled,
   transitioningState,
   onNext,
+  selectedPanelIds,
+  onSelectAll,
+  onDeselectAll,
+  onRegenerateSelected,
+  onDeleteSelected,
+  isBatchProcessing,
 }: StoryboardStageShellProps) {
   const t = useTranslations('storyboard')
+  const selectedCount = selectedPanelIds?.size ?? 0
 
   return (
     <div className="space-y-6 pb-20">
       {children}
+
+      {selectedCount > 0 && onSelectAll && onDeselectAll && onRegenerateSelected && onDeleteSelected && (
+        <BatchOperationsBar
+          selectedCount={selectedCount}
+          onSelectAll={onSelectAll}
+          onDeselectAll={onDeselectAll}
+          onRegenerateSelected={onRegenerateSelected}
+          onDeleteSelected={onDeleteSelected}
+          isProcessing={isBatchProcessing}
+        />
+      )}
+
       <button
         onClick={onNext}
         disabled={isNextDisabled}

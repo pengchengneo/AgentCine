@@ -88,16 +88,36 @@ export async function runProducerQualityCheck(
   )
   await log(`创建 ${panels.length} 个分镜画面审核项`)
 
-  // Update pipeline run status to review
-  await prisma.pipelineRun.update({
-    where: { id: state.pipelineRunId },
-    data: {
-      status: PIPELINE_STATUS.REVIEW,
-      currentPhase: 'review',
+  // Check if all items are already auto-passed — if so, go directly to completed
+  const pendingCount = await prisma.pipelineReviewItem.count({
+    where: {
+      pipelineRunId: state.pipelineRunId,
+      status: { in: [REVIEW_STATUS.PENDING, REVIEW_STATUS.RETRYING] },
     },
   })
 
-  state.currentPhase = 'review'
+  if (pendingCount === 0) {
+    await prisma.pipelineRun.update({
+      where: { id: state.pipelineRunId },
+      data: {
+        status: PIPELINE_STATUS.COMPLETED,
+        currentPhase: 'review',
+        completedAt: new Date(),
+      },
+    })
+    state.currentPhase = 'review'
+    await log(`全部自动通过，Pipeline 已完成`)
+  } else {
+    await prisma.pipelineRun.update({
+      where: { id: state.pipelineRunId },
+      data: {
+        status: PIPELINE_STATUS.REVIEW,
+        currentPhase: 'review',
+      },
+    })
+    state.currentPhase = 'review'
+    await log(`${pendingCount} 项待人工审核`)
+  }
 
   await log(`质量检查完成，共创建 ${characters.length + locations.length + panels.length} 个审核项`)
   logger.info({

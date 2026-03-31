@@ -5,12 +5,14 @@ import { useSession } from 'next-auth/react'
 import { useTranslations } from 'next-intl'
 import AppShell from '@/components/AppShell'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import TaskStatusInline from '@/components/task/TaskStatusInline'
-import { resolveTaskPresentationState } from '@/lib/task/presentation'
-import { AppIcon, IconGradientDefs } from '@/components/ui/icons'
+import { AppIcon } from '@/components/ui/icons'
 import { shouldGuideToModelSetup } from '@/lib/workspace/model-setup'
 import { Link, useRouter } from '@/i18n/navigation'
 import { apiFetch } from '@/lib/api-fetch'
+import QuickCreateHero from './components/QuickCreateHero'
+import TemplateSection from './components/TemplateSection'
+import ProjectCard from './components/ProjectCard'
+import type { ProjectTemplate } from '@/lib/workspace/templates'
 
 interface ProjectStats {
   episodes: number
@@ -26,8 +28,9 @@ interface Project {
   description: string | null
   createdAt: string
   updatedAt: string
-  totalCost?: number  // 项目总费用（CNY）
+  totalCost?: number
   stats?: ProjectStats
+  thumbnailUrl?: string | null
 }
 
 interface Pagination {
@@ -37,13 +40,7 @@ interface Pagination {
   totalPages: number
 }
 
-const PAGE_SIZE = 7 // 加上新建项目按钮正好8个，4列布局下2行
-const DEFAULT_BILLING_CURRENCY = 'CNY'
-
-function formatProjectCost(amount: number, currency = DEFAULT_BILLING_CURRENCY): string {
-  if (currency === 'USD') return `$${amount.toFixed(2)}`
-  return `¥${amount.toFixed(2)}`
-}
+const PAGE_SIZE = 7
 
 export default function WorkspacePage() {
   const { data: session, status } = useSession()
@@ -125,7 +122,6 @@ export default function WorkspacePage() {
   // 打开新建项目弹窗并检测模型配置
   const openCreateModal = useCallback(() => {
     setShowCreateModal(true)
-    // 异步检测模型配置状态
     void (async () => {
       try {
         const res = await apiFetch('/api/user-preference')
@@ -144,6 +140,23 @@ export default function WorkspacePage() {
     setPagination(prev => ({ ...prev, page: newPage }))
   }
 
+  // Quick create 成功回调
+  const handleProjectCreated = () => {
+    setSearchQuery('')
+    setSearchInput('')
+    setPagination(prev => ({ ...prev, page: 1 }))
+    void fetchProjects(1, '')
+  }
+
+  // 模板选择 → 打开弹窗预填
+  const handleTemplateSelect = (template: ProjectTemplate) => {
+    setFormData({ name: '', description: '' })
+    openCreateModal()
+    // Use template nameKey to pre-fill is not practical since we need i18n,
+    // just open the modal and let user fill in
+    void template
+  }
+
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.name.trim()) return
@@ -157,7 +170,7 @@ export default function WorkspacePage() {
         },
         body: JSON.stringify({
           ...formData,
-          mode: 'novel-promotion' // 固定为 novel-promotion
+          mode: 'novel-promotion'
         })
       })
 
@@ -171,7 +184,6 @@ export default function WorkspacePage() {
           _ulogError('获取用户偏好失败:', { status: preferenceResponse.status })
         }
 
-        // 创建成功后刷新第一页
         setSearchQuery('')
         setSearchInput('')
         setPagination(prev => ({ ...prev, page: 1 }))
@@ -192,20 +204,6 @@ export default function WorkspacePage() {
     } finally {
       setCreateLoading(false)
     }
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    // 转换为北京时间 (UTC+8)
-    const beijingTime = new Date(date.getTime() + 8 * 60 * 60 * 1000)
-    return beijingTime.toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'Asia/Shanghai'
-    })
   }
 
   const handleEditProject = async (e: React.FormEvent) => {
@@ -250,7 +248,6 @@ export default function WorkspacePage() {
       })
 
       if (response.ok) {
-        // 删除成功后重新获取当前页
         fetchProjects(pagination.page, searchQuery)
       } else {
         alert(t('deleteFailed'))
@@ -264,7 +261,7 @@ export default function WorkspacePage() {
   }
 
   const openDeleteConfirm = (project: Project, e: React.MouseEvent) => {
-    e.preventDefault()  // 阻止 Link 导航
+    e.preventDefault()
     e.stopPropagation()
     setProjectToDelete(project)
     setShowDeleteConfirm(true)
@@ -276,7 +273,7 @@ export default function WorkspacePage() {
   }
 
   const openEditModal = (project: Project, e: React.MouseEvent) => {
-    e.preventDefault()  // 阻止 Link 导航
+    e.preventDefault()
     e.stopPropagation()
     setEditingProject(project)
     setEditFormData({
@@ -297,14 +294,15 @@ export default function WorkspacePage() {
   return (
     <AppShell>
       {/* Main Content */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-8 cinema-fade-up">
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-8 space-y-8">
+        {/* Header */}
+        <div className="cinema-fade-up flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-[var(--glass-text-primary)] mb-2">{t('title')}</h1>
             <p className="text-[var(--glass-text-secondary)]">{t('subtitle')}</p>
           </div>
 
-          {/* 搜索框 */}
+          {/* Search */}
           <div className="flex gap-2">
             <input
               type="text"
@@ -335,216 +333,124 @@ export default function WorkspacePage() {
           </div>
         </div>
 
-        {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {/* New Project Card */}
-          <div
-            onClick={() => openCreateModal()}
-            className="glass-surface p-6 cursor-pointer group flex items-center justify-center bg-gradient-to-br from-[var(--glass-accent-from)]/5 via-[var(--glass-accent-via)]/5 to-[var(--glass-accent-to)]/5 hover:from-[var(--glass-accent-from)]/10 hover:via-[var(--glass-accent-via)]/10 hover:to-[var(--glass-accent-to)]/10 transition-all duration-300"
-          >
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--glass-accent-from)] to-[var(--glass-accent-via)] flex items-center justify-center shadow-lg shadow-[var(--glass-accent-shadow-soft)] group-hover:shadow-[var(--glass-accent-shadow-strong)] group-hover:scale-110 transition-all duration-300">
-                <AppIcon name="plus" className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-sm font-medium text-[var(--glass-text-secondary)] group-hover:text-[var(--glass-text-primary)] transition-colors">{t('newProject')}</span>
-            </div>
+        {/* Quick Create Hero */}
+        <QuickCreateHero onProjectCreated={handleProjectCreated} />
+
+        {/* Template Section */}
+        <TemplateSection onSelectTemplate={handleTemplateSelect} />
+
+        {/* Recent Projects */}
+        <div className="cinema-fade-up" style={{ animationDelay: '160ms' }}>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-[var(--glass-text-primary)]">
+              {t('recentProjects')}
+            </h2>
+            <button
+              onClick={() => openCreateModal()}
+              className="glass-btn-base glass-btn-soft px-3 py-1.5 text-sm"
+            >
+              <AppIcon name="plus" className="w-4 h-4" />
+              {t('newProject')}
+            </button>
           </div>
 
-          {/* Project Cards */}
-          {loading ? (
-            // Loading skeleton
-            Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="glass-surface p-6 animate-pulse">
-                <div className="h-4 bg-[var(--glass-bg-muted)] rounded mb-3"></div>
-                <div className="h-3 bg-[var(--glass-bg-muted)] rounded mb-2"></div>
-                <div className="h-3 bg-[var(--glass-bg-muted)] rounded w-2/3"></div>
-              </div>
-            ))
-          ) : (
-            projects.map((project) => (
-              <Link
-                key={project.id}
-                href={{ pathname: `/workspace/${project.id}` }}
-                className="glass-surface cursor-pointer relative group block hover:border-[var(--glass-tone-info-fg)]/40 transition-all duration-300 overflow-hidden"
-              >
-                {/* 悬停光效 */}
-                <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-br from-[var(--glass-accent-from)]/5 to-[#a855f7]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-                <div className="p-5 relative z-10">
-                  {/* 操作按钮 */}
-                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                    <button
-                      onClick={(e) => openEditModal(project, e)}
-                      className="glass-btn-base glass-btn-secondary p-2 rounded-lg transition-colors"
-                      title={t('editProject')}
-                    >
-                      <AppIcon name="editSquare" className="w-4 h-4 text-[var(--glass-tone-info-fg)]" />
-                    </button>
-                    <button
-                      onClick={(e) => openDeleteConfirm(project, e)}
-                      className="glass-btn-base glass-btn-secondary p-2 rounded-lg transition-colors"
-                      title={t('deleteProject')}
-                      disabled={deletingProjectId === project.id}
-                    >
-                      {deletingProjectId === project.id ? (
-                        <TaskStatusInline
-                          state={resolveTaskPresentationState({
-                            phase: 'processing',
-                            intent: 'process',
-                            resource: 'text',
-                            hasOutput: true,
-                          })}
-                          className="[&>span]:sr-only"
-                        />
-                      ) : (
-                        <AppIcon name="trash" className="w-4 h-4 text-[var(--glass-tone-danger-fg)]" />
-                      )}
-                    </button>
-                  </div>
-
-                  {/* 标题 */}
-                  <h3 className="text-lg font-bold text-[var(--glass-text-primary)] mb-2 line-clamp-2 pr-20 group-hover:text-[var(--glass-tone-info-fg)] transition-colors">
-                    {project.name}
-                  </h3>
-
-                  {/* 描述：优先用户描述，fallback 到第一集故事 */}
-                  {(project.description || project.stats?.firstEpisodePreview) && (
-                    <div className="flex items-start gap-2 mb-4">
-                      <AppIcon name="fileText" className="w-4 h-4 text-[var(--glass-text-tertiary)] mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-[var(--glass-text-secondary)] line-clamp-2 leading-relaxed">
-                        {project.description || project.stats?.firstEpisodePreview}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* 统计信息 - 整行统一渐变 */}
-                  {project.stats && (project.stats.episodes > 0 || project.stats.images > 0 || project.stats.videos > 0) ? (
-                    <div className="flex items-center gap-2 mb-3">
-                      {/* 共享渐变定义 */}
-                      <IconGradientDefs className="w-0 h-0 absolute" aria-hidden="true" />
-                      <AppIcon name="statsBarGradient" className="w-4 h-4 flex-shrink-0" />
-                      <div className="flex items-center gap-3 text-sm font-semibold bg-gradient-to-r from-[var(--glass-accent-from)] to-[var(--glass-accent-via)] bg-clip-text text-transparent">
-                        {project.stats.episodes > 0 && (
-                          <span className="flex items-center gap-1" title={t('statsEpisodes')}>
-                            <AppIcon name="statsEpisodeGradient" className="w-3.5 h-3.5" />
-                            {project.stats.episodes}
-                          </span>
-                        )}
-                        {project.stats.images > 0 && (
-                          <span className="flex items-center gap-1" title={t('statsImages')}>
-                            <AppIcon name="statsImageGradient" className="w-3.5 h-3.5" />
-                            {project.stats.images}
-                          </span>
-                        )}
-                        {project.stats.videos > 0 && (
-                          <span className="flex items-center gap-1" title={t('statsVideos')}>
-                            <AppIcon name="statsVideoGradient" className="w-3.5 h-3.5" />
-                            {project.stats.videos}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2.5 mb-3">
-                      <AppIcon name="statsBar" className="w-4 h-4 text-[var(--glass-text-tertiary)] flex-shrink-0" />
-                      <span className="text-xs text-[var(--glass-text-tertiary)]">{t('noContent')}</span>
-                    </div>
-                  )}
-
-                  {/* 底部信息 */}
-                  <div className="flex items-center justify-between text-[11px] text-[var(--glass-text-tertiary)]">
-                    <div className="flex items-center gap-1">
-                      <AppIcon name="clock" className="w-3 h-3" />
-                      {formatDate(project.updatedAt)}
-                    </div>
-                    {project.totalCost !== undefined && project.totalCost > 0 && (
-                      <span className="text-[11px] font-mono font-medium text-[var(--glass-text-secondary)]">
-                        {formatProjectCost(project.totalCost)}
-                      </span>
-                    )}
-                  </div>
+          {/* Projects Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {loading ? (
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="glass-surface p-6 animate-pulse">
+                  <div className="h-4 bg-[var(--glass-bg-muted)] rounded mb-3"></div>
+                  <div className="h-3 bg-[var(--glass-bg-muted)] rounded mb-2"></div>
+                  <div className="h-3 bg-[var(--glass-bg-muted)] rounded w-2/3"></div>
                 </div>
-              </Link>
-            ))
-          )}
-        </div>
-
-        {/* Empty State */}
-        {!loading && projects.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-[var(--glass-bg-muted)] rounded-xl flex items-center justify-center mx-auto mb-4">
-              <AppIcon name="folderCards" className="w-8 h-8 text-[var(--glass-text-tertiary)]" />
-            </div>
-            <h3 className="text-lg font-medium text-[var(--glass-text-primary)] mb-2">
-              {searchQuery ? t('noResults') : t('noProjects')}
-            </h3>
-            <p className="text-[var(--glass-text-secondary)] mb-6">
-              {searchQuery ? t('noResultsDesc') : t('noProjectsDesc')}
-            </p>
-            {!searchQuery && (
-              <button
-                onClick={() => openCreateModal()}
-                className="glass-btn-base glass-btn-primary px-6 py-3"
-              >
-                {t('newProject')}
-              </button>
+              ))
+            ) : (
+              projects.map((project) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  deletingProjectId={deletingProjectId}
+                  onEdit={openEditModal}
+                  onDelete={openDeleteConfirm}
+                />
+              ))
             )}
           </div>
-        )}
 
-        {/* 分页控件 */}
-        {!loading && pagination.totalPages > 1 && (
-          <div className="mt-8 flex items-center justify-center gap-2">
-            <button
-              onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={pagination.page <= 1}
-              className="glass-btn-base glass-btn-secondary px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <AppIcon name="chevronLeft" className="w-5 h-5" />
-            </button>
+          {/* Empty State */}
+          {!loading && projects.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-[var(--glass-bg-muted)] rounded-xl flex items-center justify-center mx-auto mb-4">
+                <AppIcon name="folderCards" className="w-8 h-8 text-[var(--glass-text-tertiary)]" />
+              </div>
+              <h3 className="text-lg font-medium text-[var(--glass-text-primary)] mb-2">
+                {searchQuery ? t('noResults') : t('noProjects')}
+              </h3>
+              <p className="text-[var(--glass-text-secondary)] mb-6">
+                {searchQuery ? t('noResultsDesc') : t('noProjectsDesc')}
+              </p>
+              {!searchQuery && (
+                <button
+                  onClick={() => openCreateModal()}
+                  className="glass-btn-base glass-btn-primary px-6 py-3"
+                >
+                  {t('newProject')}
+                </button>
+              )}
+            </div>
+          )}
 
-            {/* 页码按钮 */}
-            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-              .filter(page => {
-                // 显示第一页、最后一页、当前页及其前后两页
-                return page === 1 ||
-                  page === pagination.totalPages ||
-                  Math.abs(page - pagination.page) <= 2
-              })
-              .map((page, index, array) => (
-                <span key={page} className="flex items-center">
-                  {/* 显示省略号 */}
-                  {index > 0 && array[index - 1] !== page - 1 && (
-                    <span className="px-2 text-[var(--glass-text-tertiary)]">...</span>
-                  )}
-                  <button
-                    onClick={() => handlePageChange(page)}
-                    className={`glass-btn-base px-4 py-2 ${page === pagination.page
-                      ? 'glass-btn-primary'
-                      : 'glass-btn-secondary'
-                      }`}
-                  >
-                    {page}
-                  </button>
-                </span>
-              ))}
+          {/* Pagination */}
+          {!loading && pagination.totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-2">
+              <button
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+                className="glass-btn-base glass-btn-secondary px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <AppIcon name="chevronLeft" className="w-5 h-5" />
+              </button>
 
-            <button
-              onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={pagination.page >= pagination.totalPages}
-              className="glass-btn-base glass-btn-secondary px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <AppIcon name="chevronRight" className="w-5 h-5" />
-            </button>
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                .filter(page => {
+                  return page === 1 ||
+                    page === pagination.totalPages ||
+                    Math.abs(page - pagination.page) <= 2
+                })
+                .map((page, index, array) => (
+                  <span key={page} className="flex items-center">
+                    {index > 0 && array[index - 1] !== page - 1 && (
+                      <span className="px-2 text-[var(--glass-text-tertiary)]">...</span>
+                    )}
+                    <button
+                      onClick={() => handlePageChange(page)}
+                      className={`glass-btn-base px-4 py-2 ${page === pagination.page
+                        ? 'glass-btn-primary'
+                        : 'glass-btn-secondary'
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  </span>
+                ))}
 
-            <span className="ml-4 text-sm text-[var(--glass-text-tertiary)]">
-              {t('totalProjects', { count: pagination.total })}
-            </span>
-          </div>
-        )}
+              <button
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page >= pagination.totalPages}
+                className="glass-btn-base glass-btn-secondary px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <AppIcon name="chevronRight" className="w-5 h-5" />
+              </button>
+
+              <span className="ml-4 text-sm text-[var(--glass-text-tertiary)]">
+                {t('totalProjects', { count: pagination.total })}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Create Project Modal - 简化版，只有名称和描述 */}
+      {/* Create Project Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 glass-overlay flex items-center justify-center z-50 backdrop-blur-sm">
           <div className="glass-surface-modal p-6 w-full max-w-md mx-4">
@@ -682,7 +588,7 @@ export default function WorkspacePage() {
         </div>
       )}
 
-      {/* 删除确认对话框 */}
+      {/* Delete Confirm Dialog */}
       <ConfirmDialog
         show={showDeleteConfirm}
         title={t('deleteProject')}

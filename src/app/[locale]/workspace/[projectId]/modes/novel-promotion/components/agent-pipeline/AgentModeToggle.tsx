@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { AppIcon } from '@/components/ui/icons'
 
 type Props = {
@@ -8,6 +9,8 @@ type Props = {
 }
 
 export function AgentModeToggle({ isAgentMode, onToggle }: Props) {
+  const t = useTranslations('pipeline')
+
   return (
     <div className="glass-surface-nav flex rounded-full p-1 shadow-lg">
       <button
@@ -19,7 +22,7 @@ export function AgentModeToggle({ isAgentMode, onToggle }: Props) {
         }`}
       >
         <AppIcon name="wrench" className="h-3.5 w-3.5" />
-        手动
+        {t('manual')}
       </button>
       <button
         onClick={isAgentMode ? undefined : onToggle}
@@ -30,7 +33,7 @@ export function AgentModeToggle({ isAgentMode, onToggle }: Props) {
         }`}
       >
         <AppIcon name="bot" className="h-3.5 w-3.5" />
-        Agent
+        {t('agent')}
       </button>
     </div>
   )

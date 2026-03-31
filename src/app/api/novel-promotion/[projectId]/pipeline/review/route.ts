@@ -7,6 +7,7 @@ import {
   approveReviewItem,
   rejectReviewItem,
   getReviewItemsByRun,
+  enrichReviewItems,
 } from '@/lib/agent-pipeline/review/review-service'
 import { prisma } from '@/lib/prisma'
 import { PIPELINE_STATUS } from '@/lib/agent-pipeline/types'
@@ -31,7 +32,8 @@ export const GET = apiHandler(async (
   }
 
   const items = await getReviewItemsByRun(pipelineRun.id, phase)
-  return Response.json({ items })
+  const enriched = await enrichReviewItems(items)
+  return Response.json({ items: enriched })
 })
 
 export const POST = apiHandler(async (

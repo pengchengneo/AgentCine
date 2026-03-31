@@ -77,6 +77,8 @@ interface WorkspaceHeaderShellProps {
   assetLibraryLabel: string
   settingsLabel: string
   refreshTitle: string
+  headerSlot?: React.ReactNode
+  hideCapsuleNav?: boolean
 }
 
 export default function WorkspaceHeaderShell({
@@ -117,6 +119,8 @@ export default function WorkspaceHeaderShell({
   assetLibraryLabel,
   settingsLabel,
   refreshTitle,
+  headerSlot,
+  hideCapsuleNav,
 }: WorkspaceHeaderShellProps) {
   return (
     <>
@@ -184,13 +188,15 @@ export default function WorkspaceHeaderShell({
 
 
 
-      <CapsuleNav
-        items={capsuleNavItems}
-        activeId={currentStage}
-        onItemClick={onStageChange}
-        projectId={projectId}
-        episodeId={episodeId}
-      />
+      {!hideCapsuleNav && (
+        <CapsuleNav
+          items={capsuleNavItems}
+          activeId={currentStage}
+          onItemClick={onStageChange}
+          projectId={projectId}
+          episodeId={episodeId}
+        />
+      )}
 
       <WorkspaceTopActions
         onOpenAssetLibrary={onOpenAssetLibrary}
@@ -199,6 +205,7 @@ export default function WorkspaceHeaderShell({
         assetLibraryLabel={assetLibraryLabel}
         settingsLabel={settingsLabel}
         refreshTitle={refreshTitle}
+        headerSlot={headerSlot}
       />
     </>
   )

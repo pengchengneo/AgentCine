@@ -21,7 +21,7 @@ import '@/styles/animations.css'
 function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
   const vm = useNovelPromotionWorkspaceController(props)
   const tProgress = useTranslations('progress')
-  const [isAgentMode, setIsAgentMode] = useState(false)
+  const [isAgentMode, setIsAgentMode] = useState(true)
   const [pipelineRunId, setPipelineRunId] = useState<string | null>(null)
 
   const {
@@ -88,10 +88,6 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
     <div>
       <AnimatedBackground />
 
-      <div className="flex justify-end mb-2 px-6">
-        <AgentModeToggle isAgentMode={isAgentMode} onToggle={handleToggleMode} />
-      </div>
-
       <WorkspaceHeaderShell
         isSettingsModalOpen={vm.ui.isSettingsModalOpen}
         isWorldContextModalOpen={vm.ui.isWorldContextModalOpen}
@@ -130,11 +126,13 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
         assetLibraryLabel={vm.i18n.t('buttons.assetLibrary')}
         settingsLabel={vm.i18n.t('buttons.settings')}
         refreshTitle={vm.i18n.t('buttons.refreshData')}
+        headerSlot={<AgentModeToggle isAgentMode={isAgentMode} onToggle={handleToggleMode} />}
+        hideCapsuleNav={isAgentMode}
       />
 
-      <div className="pt-24">
+      <div className="pt-20">
         {isAgentMode ? (
-          <div className="flex gap-6 px-6">
+          <div className="flex gap-6 px-6 h-[calc(100vh-6rem)]">
             {/* Left sidebar: Pipeline Dashboard */}
             <div className="w-80 flex-shrink-0">
               <AgentPipelineDashboard
