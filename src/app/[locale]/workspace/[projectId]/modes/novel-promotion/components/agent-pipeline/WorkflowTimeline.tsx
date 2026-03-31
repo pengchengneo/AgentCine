@@ -12,6 +12,9 @@ const DEFAULT_STEPS: StepInfo[] = [
   { stepKey: 'art_director_agent', stepTitle: '', status: 'pending', stepIndex: 1, startedAt: null, finishedAt: null, lastErrorMessage: null, usage: EMPTY_USAGE },
   { stepKey: 'storyboard_agent', stepTitle: '', status: 'pending', stepIndex: 2, startedAt: null, finishedAt: null, lastErrorMessage: null, usage: EMPTY_USAGE },
   { stepKey: 'producer_quality_check', stepTitle: '', status: 'pending', stepIndex: 3, startedAt: null, finishedAt: null, lastErrorMessage: null, usage: EMPTY_USAGE },
+  { stepKey: 'video_generation_agent', stepTitle: '', status: 'pending', stepIndex: 4, startedAt: null, finishedAt: null, lastErrorMessage: null, usage: EMPTY_USAGE },
+  { stepKey: 'voice_generation_agent', stepTitle: '', status: 'pending', stepIndex: 5, startedAt: null, finishedAt: null, lastErrorMessage: null, usage: EMPTY_USAGE },
+  { stepKey: 'assembly_agent', stepTitle: '', status: 'pending', stepIndex: 6, startedAt: null, finishedAt: null, lastErrorMessage: null, usage: EMPTY_USAGE },
 ]
 
 type Props = {

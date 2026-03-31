@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
     'http://192.168.31.218:3000',
     'http://192.168.31.*:3000',
   ],
+  // Remotion 渲染依赖包含 esbuild 原生二进制，必须排除在 Turbopack 之外
+  serverExternalPackages: [
+    '@remotion/bundler',
+    '@remotion/renderer',
+    'esbuild',
+  ],
 };
 
 export default withNextIntl(nextConfig);

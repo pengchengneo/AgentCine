@@ -11,7 +11,7 @@ import {
   getProjectModels,
   resolveLipSyncVideoSource,
   resolveVideoSourceFromGeneration,
-  toSignedUrlIfCos,
+  toDirectSignedUrl,
   uploadVideoSourceToCos,
 } from './utils'
 import { normalizeToBase64ForGeneration } from '@/lib/media/outbound-image'
@@ -101,7 +101,7 @@ async function generateVideoForPanel(
     throw new Error(`Panel ${panel.id} has no video prompt`)
   }
 
-  const sourceImageUrl = toSignedUrlIfCos(panel.imageUrl, 3600)
+  const sourceImageUrl = await toDirectSignedUrl(panel.imageUrl, 3600)
   if (!sourceImageUrl) {
     throw new Error(`Panel ${panel.id} image url invalid`)
   }
@@ -133,7 +133,7 @@ async function generateVideoForPanel(
         Number(firstLastFramePayload.lastFramePanelIndex),
       )
       if (lastPanel?.imageUrl) {
-        const lastFrameUrl = toSignedUrlIfCos(lastPanel.imageUrl, 3600)
+        const lastFrameUrl = await toDirectSignedUrl(lastPanel.imageUrl, 3600)
         if (lastFrameUrl) {
           lastFrameImageBase64 = await normalizeToBase64ForGeneration(lastFrameUrl)
         }
@@ -245,8 +245,8 @@ async function handleLipSyncTask(job: Job<TaskJobData>) {
     throw new Error('Voice line or audioUrl not found')
   }
 
-  const signedVideoUrl = toSignedUrlIfCos(panel.videoUrl, 7200)
-  const signedAudioUrl = toSignedUrlIfCos(voiceLine.audioUrl, 7200)
+  const signedVideoUrl = await toDirectSignedUrl(panel.videoUrl, 7200)
+  const signedAudioUrl = await toDirectSignedUrl(voiceLine.audioUrl, 7200)
 
   if (!signedVideoUrl || !signedAudioUrl) {
     throw new Error('Lip-sync input media url invalid')

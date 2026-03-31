@@ -28,6 +28,18 @@ export type PipelineState = GraphExecutorState & {
   storyboardComplete: boolean
   panelCount: number
 
+  // VideoGenerationAgent output
+  videoGenerationComplete: boolean
+  videoPanelCount: number
+
+  // VoiceGenerationAgent output
+  voiceAnalysisComplete: boolean
+  voiceGenerationComplete: boolean
+  voiceLineCount: number
+
+  // AssemblyAgent output
+  assemblyComplete: boolean
+
   // ProducerAgent control
   currentPhase: PipelinePhase
   qualityGates: QualityCheckResult[]
@@ -61,6 +73,12 @@ export function createInitialPipelineState(input: {
     locationAssetsLocked: false,
     storyboardComplete: false,
     panelCount: 0,
+    videoGenerationComplete: false,
+    videoPanelCount: 0,
+    voiceAnalysisComplete: false,
+    voiceGenerationComplete: false,
+    voiceLineCount: 0,
+    assemblyComplete: false,
     currentPhase: 'script',
     qualityGates: [],
     error: null,

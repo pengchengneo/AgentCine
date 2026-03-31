@@ -6,6 +6,9 @@ import { runScriptAgent } from './nodes/script-agent'
 import { runArtDirectorAgent } from './nodes/art-director'
 import { runStoryboardAgent } from './nodes/storyboard-agent'
 import { runProducerQualityCheck } from './nodes/producer'
+import { runVideoGenerationAgent } from './nodes/video-generator'
+import { runVoiceGenerationAgent } from './nodes/voice-generator'
+import { runAssemblyAgent } from './nodes/assembly-agent'
 import type { PipelineConfig } from '../types'
 
 export type StartPipelineInput = {
@@ -65,6 +68,27 @@ export async function runAgentPipelineGraph(
         maxAttempts: 1,
         timeoutMs: 5 * 60 * 1000,
         run: runProducerQualityCheck,
+      },
+      {
+        key: 'video_generation_agent',
+        title: 'Video Generation for Panels',
+        maxAttempts: 2,
+        timeoutMs: 60 * 60 * 1000, // 60 minutes (many video generations)
+        run: runVideoGenerationAgent,
+      },
+      {
+        key: 'voice_generation_agent',
+        title: 'Voice Analysis & Audio Generation',
+        maxAttempts: 2,
+        timeoutMs: 30 * 60 * 1000,
+        run: runVoiceGenerationAgent,
+      },
+      {
+        key: 'assembly_agent',
+        title: 'Auto Assembly & Final Composition',
+        maxAttempts: 2,
+        timeoutMs: 30 * 60 * 1000,
+        run: runAssemblyAgent,
       },
     ],
   })

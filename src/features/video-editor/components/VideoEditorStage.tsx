@@ -67,7 +67,7 @@ export function VideoEditorStage({
 
     const pollRenderStatus = useCallback(async () => {
         try {
-            const data = await getRenderStatus(project.id)
+            const data = await getRenderStatus()
             setRenderStatus(data.status || 'idle')
             if (data.outputUrl) {
                 setRenderOutputUrl(data.outputUrl)
@@ -81,7 +81,7 @@ export function VideoEditorStage({
         } catch {
             // Ignore poll errors
         }
-    }, [getRenderStatus, project.id])
+    }, [getRenderStatus])
 
     useEffect(() => {
         return () => {
@@ -111,7 +111,7 @@ export function VideoEditorStage({
             // Save first before rendering
             await saveProject(project)
             markSaved()
-            await startRender(project.id)
+            await startRender()
             setRenderStatus('pending')
             // Start polling for status
             if (renderPollRef.current) clearInterval(renderPollRef.current)

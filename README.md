@@ -18,6 +18,8 @@
 
 ![Agent Pipeline Dashboard](docs/images/agent-pipeline-dashboard.png)
 
+![Pipeline Completed - One-Click Film & Download](docs/images/pipeline-completed.png)
+
 ---
 
 ## 项目简介

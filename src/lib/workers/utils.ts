@@ -569,6 +569,19 @@ export function toSignedUrlIfCos(keyOrUrl: string | null | undefined, ttlSeconds
     : keyOrUrl
 }
 
+/**
+ * Like toSignedUrlIfCos but returns a real presigned URL (not a browser-relative path).
+ * Use this in workers that need to fetch the object directly (e.g. video worker).
+ */
+export async function toDirectSignedUrl(keyOrUrl: string | null | undefined, ttlSeconds = 3600): Promise<string | null> {
+  if (!keyOrUrl) return null
+  if (keyOrUrl.startsWith('images/') || keyOrUrl.startsWith('voice/') || keyOrUrl.startsWith('video/')) {
+    const { getSignedObjectUrl } = await import('@/lib/storage')
+    return await getSignedObjectUrl(keyOrUrl, ttlSeconds)
+  }
+  return keyOrUrl
+}
+
 export async function getProjectModels(projectId: string, userId: string) {
   return await getProjectModelConfig(projectId, userId)
 }

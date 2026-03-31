@@ -5,10 +5,6 @@
   "failed": "Generation failed",
   "review": "Complete, awaiting review",
   "completed": "Completed",
-  "phaseScript": "Script Analysis",
-  "phaseArt": "Art Generation",
-  "phaseStoryboard": "Storyboard",
-  "phaseReview": "Review",
   "approve": "Approve",
   "reject": "Reject",
   "retry": "Regenerate",
@@ -38,11 +34,17 @@
   "agentArt": "Art Director",
   "agentStoryboard": "Storyboard Agent",
   "agentProducer": "Producer",
+  "agentVideo": "Video Generator",
+  "agentVoice": "Voice Agent",
+  "agentAssembly": "Assembly Agent",
 
   "agentRoleScript": "Novel text analysis and script breakdown",
   "agentRoleArt": "Character and scene visual design",
   "agentRoleStoryboard": "Storyboard composition and generation",
   "agentRoleProducer": "Quality review and consistency check",
+  "agentRoleVideo": "Panel video generation",
+  "agentRoleVoice": "Voice analysis and audio generation",
+  "agentRoleAssembly": "Auto-assembly and final output",
 
   "taskAnalyzeNovel": "Analyzing novel text",
   "taskStoryToScript": "Generating script",
@@ -56,6 +58,17 @@
   "stepArtDirector": "Art Generation",
   "stepStoryboardAgent": "Storyboard Generation",
   "stepProducerQualityCheck": "Quality Review",
+  "stepVideoGeneration": "Video Generation",
+  "stepVoiceGeneration": "Voice Generation",
+  "stepAssembly": "Auto Assembly",
+
+  "phaseScript": "Script Analysis",
+  "phaseArt": "Art Generation",
+  "phaseStoryboard": "Storyboard",
+  "phaseReview": "Review",
+  "phaseVideo": "Video Generation",
+  "phaseVoice": "Voice Generation",
+  "phaseAssembly": "Auto Assembly",
 
   "statusRunning": "Running",
   "statusReview": "Awaiting Review",
@@ -118,5 +131,9 @@
   "bgmDelete": "Delete",
   "bgmDuration": "{duration}s",
   "oneClickFilm": "One-Click Film",
-  "assembling": "Assembling..."
+  "assembling": "Assembling...",
+  "renderDownload": "Render & Download",
+  "renderingFilm": "Rendering...",
+  "downloadFilm": "Download Film",
+  "renderFailed": "Render failed, please retry"
 }

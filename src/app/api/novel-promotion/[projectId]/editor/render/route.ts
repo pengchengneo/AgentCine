@@ -24,16 +24,16 @@ export const POST = apiHandler(async (
     if (isErrorResponse(authResult)) return authResult
 
     const body = await request.json()
-    const { editorProjectId, format = 'mp4', quality = 'high' } = body
+    const { editorProjectId, episodeId, format = 'mp4', quality = 'high' } = body
 
-    if (!editorProjectId) {
+    if (!editorProjectId && !episodeId) {
         throw new ApiError('INVALID_PARAMS')
     }
 
-    // Load editor project
-    const editorProject = await prisma.videoEditorProject.findUnique({
-        where: { id: editorProjectId }
-    })
+    // Load editor project by id or episodeId
+    const editorProject = editorProjectId
+        ? await prisma.videoEditorProject.findUnique({ where: { id: editorProjectId } })
+        : await prisma.videoEditorProject.findUnique({ where: { episodeId } })
 
     if (!editorProject) {
         throw new ApiError('NOT_FOUND')
@@ -49,7 +49,7 @@ export const POST = apiHandler(async (
 
     // Mark as rendering
     await prisma.videoEditorProject.update({
-        where: { id: editorProjectId },
+        where: { id: editorProject.id },
         data: {
             renderStatus: 'pending',
             renderTaskId: `render_${Date.now()}`,
@@ -58,12 +58,13 @@ export const POST = apiHandler(async (
     })
 
     // Start rendering in background (fire-and-forget)
-    executeRender(editorProjectId, format, quality).catch(err => {
+    executeRender(editorProject.id, format, quality).catch(err => {
         logger.error('Background render failed:', err)
     })
 
     return NextResponse.json({
         status: 'pending',
+        editorProjectId: editorProject.id,
         message: 'Render started'
     })
 })
@@ -82,19 +83,21 @@ export const GET = apiHandler(async (
     if (isErrorResponse(authResult)) return authResult
 
     const editorProjectId = request.nextUrl.searchParams.get('id')
+    const episodeId = request.nextUrl.searchParams.get('episodeId')
 
-    if (!editorProjectId) {
+    if (!editorProjectId && !episodeId) {
         throw new ApiError('INVALID_PARAMS')
     }
 
-    const editorProject = await prisma.videoEditorProject.findUnique({
-        where: { id: editorProjectId },
-        select: {
-            renderStatus: true,
-            renderTaskId: true,
-            outputUrl: true
-        }
-    })
+    const editorProject = editorProjectId
+        ? await prisma.videoEditorProject.findUnique({
+            where: { id: editorProjectId },
+            select: { renderStatus: true, renderTaskId: true, outputUrl: true }
+        })
+        : await prisma.videoEditorProject.findUnique({
+            where: { episodeId: episodeId! },
+            select: { renderStatus: true, renderTaskId: true, outputUrl: true }
+        })
 
     if (!editorProject) {
         throw new ApiError('NOT_FOUND')

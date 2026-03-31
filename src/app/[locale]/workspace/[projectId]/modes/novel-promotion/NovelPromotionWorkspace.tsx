@@ -162,16 +162,24 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
                 onStarted={setPipelineRunId}
                 onEnterEditor={async () => {
                   // Load editor project for this episode
+                  if (!episodeId) {
+                    console.error('[Editor] No episodeId available')
+                    return
+                  }
                   try {
                     const res = await fetch(`/api/novel-promotion/${projectId}/editor?episodeId=${episodeId}`)
                     if (res.ok) {
                       const data = await res.json()
                       if (data.projectData) {
-                        setEditorProject(data.projectData)
+                        setEditorProject(typeof data.projectData === 'string' ? JSON.parse(data.projectData) : data.projectData)
+                      } else {
+                        console.error('[Editor] No projectData in response', data)
                       }
+                    } else {
+                      console.error('[Editor] Load failed:', res.status)
                     }
-                  } catch {
-                    // Silently fail
+                  } catch (err) {
+                    console.error('[Editor] Load error:', err)
                   }
                 }}
               />

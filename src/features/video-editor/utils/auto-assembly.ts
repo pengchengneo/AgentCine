@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma'
-import { createProjectFromPanels } from '../hooks/useEditorActions'
 import type { VideoEditorProject, VideoClip, ClipTransition } from '../types/editor.types'
 import { createScopedLogger } from '@/lib/logging/core'
 
@@ -103,13 +102,26 @@ export async function autoAssembleFromEpisode(episodeId: string): Promise<VideoE
             imageUrl: p.imageUrl
         })))
 
-    // Filter to panels with video content
-    const videoPanels = allPanels.filter(p => p.videoUrl || p.lipSyncVideoUrl)
+    // Filter to panels with video or image content
+    const usablePanels = allPanels.filter(p => p.videoUrl || p.lipSyncVideoUrl || p.imageUrl)
 
-    if (videoPanels.length === 0) {
-        logger.warn(`No video panels found for episode ${episodeId}`)
-        // Fall back to basic creation with empty timeline
-        return createProjectFromPanels(episodeId, [])
+    if (usablePanels.length === 0) {
+        logger.warn(`No usable panels found for episode ${episodeId}`)
+        // Return empty project
+        const emptyProject: VideoEditorProject = {
+            id: `editor_${episodeId}_${Date.now()}`,
+            episodeId,
+            schemaVersion: '1.0',
+            config: { fps: 30, width: 1920, height: 1080 },
+            timeline: [],
+            bgmTrack: []
+        }
+        await prisma.videoEditorProject.upsert({
+            where: { episodeId },
+            create: { episodeId, projectData: JSON.stringify(emptyProject) },
+            update: { projectData: JSON.stringify(emptyProject), renderStatus: null, outputUrl: null, updatedAt: new Date() }
+        })
+        return emptyProject
     }
 
     const voiceLines: VoiceLineData[] = episode.voiceLines.map(vl => ({
@@ -138,24 +150,26 @@ export async function autoAssembleFromEpisode(episodeId: string): Promise<VideoE
     }
 
     // Build timeline clips
-    const timeline: VideoClip[] = videoPanels.map((panel, index) => {
-        // Prefer lip-sync video over original
-        const videoSrc = panel.lipSyncVideoUrl || panel.videoUrl!
+    const timeline: VideoClip[] = usablePanels.map((panel, index) => {
+        // Prefer lip-sync video > video > image (as static frame)
+        const videoSrc = panel.lipSyncVideoUrl || panel.videoUrl || panel.imageUrl!
+        const isImageOnly = !panel.videoUrl && !panel.lipSyncVideoUrl
 
         // Match voice line: by panelId first, then by index
         const matchedVoice = voiceByPanelId.get(panel.id)
             || voiceByIndex.get(panel.panelIndex)
             || voiceLines[index] // fallback: positional
 
-        // Calculate duration: use audio duration if available, else panel duration, else 3s
+        // Calculate duration: use audio duration if available, else panel duration, else 3s (5s for image-only)
+        const defaultDuration = isImageOnly ? 5 : 3
         const durationSeconds = matchedVoice?.audioDuration
             ? matchedVoice.audioDuration / 1000 // audioDuration is in ms
-            : (panel.duration || 3)
+            : (panel.duration || defaultDuration)
         const durationInFrames = Math.max(Math.round(durationSeconds * 30), 30)
 
         // Smart transition based on shot types
-        const nextPanel = videoPanels[index + 1]
-        const transition = index < videoPanels.length - 1
+        const nextPanel = usablePanels[index + 1]
+        const transition = index < usablePanels.length - 1
             ? chooseTransition(panel.shotType, nextPanel?.shotType || null)
             : undefined
 
