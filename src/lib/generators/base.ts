@@ -9,12 +9,20 @@ import { logWarn as _ulogWarn } from '@/lib/logging/core'
 // 通用类型
 // ============================================================
 
+export interface IpAdapterOptions {
+    imageUrl: string           // 角色参考图 URL 或 base64 data URL
+    scale?: number             // IP-Adapter 强度 0-1, 默认 0.7
+    path?: string              // HuggingFace adapter 模型路径
+    imageEncoderPath?: string  // 图像编码器路径
+}
+
 export interface GenerateOptions {
     aspectRatio?: string      // 宽高比，如 '16:9', '3:4'
     resolution?: string        // 分辨率，如 '2K', '4K'
     outputFormat?: string      // 输出格式，如 'png', 'jpg'
     duration?: number          // 视频时长（秒）
     fps?: number              // 帧率
+    ipAdapter?: IpAdapterOptions  // IP-Adapter 角色一致性参数
     [key: string]: unknown        // 其他厂商特定参数
 }
 

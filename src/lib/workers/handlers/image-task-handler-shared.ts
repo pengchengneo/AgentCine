@@ -8,6 +8,8 @@ import {
   uploadImageSourceToCos,
   withLabelBar,
 } from '../utils'
+import type { IpAdapterOptions } from '@/lib/generators/base'
+import { IP_ADAPTER_DEFAULTS, IP_ADAPTER_MODELS } from '@/lib/constants'
 
 export type AnyObj = Record<string, unknown>
 
@@ -184,6 +186,33 @@ export function findCharacterByName<T extends { name: string }>(characters: T[],
   return undefined
 }
 
+/**
+ * 从角色三视图中提取面部区域作为 IP-Adapter 输入
+ * 角色三视图格式: 左1/3=正面特写, 右2/3=三视图(正/侧/背)
+ * 面部裁剪: 取图片左 1/3 区域（正面特写部分）
+ */
+export function prepareIpAdapterInput(
+  characterImageKey: string,
+  consistencyConfig?: { mode?: string; ipAdapterScale?: number }
+): IpAdapterOptions | undefined {
+  if (!consistencyConfig || consistencyConfig.mode !== 'ip-adapter') return undefined
+  if (!characterImageKey) return undefined
+
+  return {
+    imageUrl: characterImageKey,
+    scale: consistencyConfig.ipAdapterScale ?? IP_ADAPTER_DEFAULTS.scale,
+    path: IP_ADAPTER_DEFAULTS.path,
+    imageEncoderPath: IP_ADAPTER_DEFAULTS.imageEncoderPath,
+  }
+}
+
+/**
+ * 判断指定 modelId 是否支持 IP-Adapter
+ */
+export function isIpAdapterModel(modelId: string): boolean {
+  return IP_ADAPTER_MODELS.includes(modelId)
+}
+
 export async function collectPanelReferenceImages(projectData: NovelProjectData, panel: PanelLike) {
   const refs: string[] = []
 
@@ -222,4 +251,36 @@ export async function collectPanelReferenceImages(projectData: NovelProjectData,
   }
 
   return refs
+}
+
+/**
+ * 收集面板中第一个角色的参考图 key，用于 IP-Adapter 面部一致性输入。
+ * 返回角色三视图的存储 key（左1/3 正面特写将在生成时作为 IP-Adapter image_url 使用）
+ */
+export function collectPanelIpAdapterCharacterKey(
+  projectData: NovelProjectData,
+  panel: PanelLike,
+): string | null {
+  const panelCharacters = parsePanelCharacterReferences(panel.characters)
+  if (panelCharacters.length === 0) return null
+
+  const firstCharRef = panelCharacters[0]
+  const character = findCharacterByName(projectData.characters || [], firstCharRef.name)
+  if (!character) return null
+
+  const appearances = character.appearances || []
+  let appearance = appearances[0]
+  if (firstCharRef.appearance) {
+    const matched = appearances.find((a) =>
+      (a.changeReason || '').toLowerCase() === firstCharRef.appearance!.toLowerCase()
+    )
+    if (matched) appearance = matched
+  }
+
+  if (!appearance) return null
+
+  const imageUrls = parseImageUrls(appearance.imageUrls, 'characterAppearance.imageUrls')
+  const selectedIndex = appearance.selectedIndex
+  const selectedUrl = selectedIndex !== null && selectedIndex !== undefined ? imageUrls[selectedIndex] : null
+  return selectedUrl || imageUrls[0] || appearance.imageUrl || null
 }

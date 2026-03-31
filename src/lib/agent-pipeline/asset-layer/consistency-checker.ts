@@ -43,8 +43,13 @@ export function makeDecision(
   threshold: number,
   currentRetry: number,
   maxRetries: number,
+  ipAdapterEnabled?: boolean,
 ): ConsistencyDecision {
-  if (score >= threshold) return 'pass'
+  // IP-Adapter 模式下，模型本身提供更好的一致性保障，提高自动通过阈值
+  const effectiveThreshold = ipAdapterEnabled
+    ? Math.max(threshold - 0.15, 0.3)
+    : threshold
+  if (score >= effectiveThreshold) return 'pass'
   if (currentRetry >= maxRetries) return 'manual_review'
   return 'retry'
 }

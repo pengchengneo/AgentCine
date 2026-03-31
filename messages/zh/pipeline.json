@@ -97,5 +97,26 @@
   "approveAll": "全部通过",
   "approvingAll": "批准中...",
   "reviewProgress": "已审核 {approved}/{total} 项",
-  "reviewScore": "评分"
+  "reviewScore": "评分",
+
+  "codexTitle": "Codex 智能编排",
+  "codexRun": "一键编排",
+  "codexRunning": "编排中...",
+  "codexSuccess": "编排完成",
+  "codexFailed": "编排失败",
+  "codexSkillsApplied": "已应用 {count} 个编辑操作",
+  "codexReason": "原因",
+
+  "bgmLibrary": "BGM 素材库",
+  "bgmCategoryAction": "动作/紧张",
+  "bgmCategoryEmotional": "温馨/感动",
+  "bgmCategoryComedy": "搞笑/轻松",
+  "bgmCategoryEpic": "史诗/宏大",
+  "bgmCategorySuspense": "悬疑/恐怖",
+  "bgmCategoryPeaceful": "平静/日常",
+  "bgmUpload": "上传 BGM",
+  "bgmDelete": "删除",
+  "bgmDuration": "{duration}秒",
+  "oneClickFilm": "一键成片",
+  "assembling": "装配中..."
 }

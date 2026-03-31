@@ -31,5 +31,14 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "boolOn": "On",
-    "boolOff": "Off"
+    "boolOff": "Off",
+    "consistencyMode": "Character Consistency",
+    "consistencyModeDesc": "Choose consistency strategy. IP-Adapter enhanced mode uses model-level reference for improved character appearance.",
+    "consistencyStandard": "Standard",
+    "consistencyStandardDesc": "Prompt + reference image injection",
+    "consistencyIpAdapter": "IP-Adapter Enhanced",
+    "consistencyIpAdapterDesc": "Model-level consistency via IP-Adapter (FAL FLUX models only)",
+    "ipAdapterScale": "IP-Adapter Strength",
+    "ipAdapterScaleLow": "Weak",
+    "ipAdapterScaleHigh": "Strong"
 }
