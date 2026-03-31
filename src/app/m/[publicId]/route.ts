@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSignedUrl, toFetchableUrl } from '@/lib/storage'
+import { getSignedObjectUrl } from '@/lib/storage'
 import { getMediaObjectByPublicId } from '@/lib/media/service'
 
 export const runtime = 'nodejs'
@@ -40,7 +40,7 @@ export async function GET(
     })
   }
 
-  const fetchUrl = toFetchableUrl(getSignedUrl(media.storageKey))
+  const fetchUrl = await getSignedObjectUrl(media.storageKey)
   const range = request.headers.get('range')
 
   const upstream = await fetch(fetchUrl, {
