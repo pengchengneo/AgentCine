@@ -14,6 +14,12 @@
 
 ---
 
+## 预览
+
+![Agent Pipeline Dashboard](docs/images/agent-pipeline-dashboard.png)
+
+---
+
 ## 项目简介
 
 AgentCine 是一个基于 Next.js 15 + React 19 构建的 AI 影视制作平台。当前仓库已经包含：
@@ -205,12 +211,6 @@ npm run test:behavior:full
 - MinIO 负责媒体对象存储
 
 因此无论是 Docker 部署还是本地开发，都建议把应用、数据库、Redis、对象存储一起启动。
-
----
-
-## 预览
-
-![Agent Pipeline Dashboard](docs/images/agent-pipeline-dashboard.png)
 
 ---
 
