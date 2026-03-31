@@ -47,6 +47,7 @@ export const IMAGE_MODELS = [
 export const IMAGE_MODEL_OPTIONS = [
   { value: 'banana', label: 'Banana Pro (FAL)' },
   { value: 'banana-2', label: 'Banana 2 (FAL)' },
+  { value: 'flux-general', label: 'FLUX General (FAL, IP-Adapter)' },
   { value: 'gemini-3-pro-image-preview', label: 'Banana (Google)' },
   { value: 'gemini-3-pro-image-preview-batch', label: 'Banana (Google Batch) 省50%' },
   { value: 'doubao-seedream-4-0-250828', label: 'Seedream 4.0' },
@@ -55,6 +56,16 @@ export const IMAGE_MODEL_OPTIONS = [
   { value: 'imagen-4.0-ultra-generate-001', label: 'Imagen 4.0 Ultra' },
   { value: 'imagen-4.0-fast-generate-001', label: 'Imagen 4.0 Fast' }
 ]
+
+// 支持 IP-Adapter 的模型列表
+export const IP_ADAPTER_MODELS = ['flux-general']
+
+// 默认 IP-Adapter 配置
+export const IP_ADAPTER_DEFAULTS = {
+  scale: 0.7,
+  path: 'XLabs-AI/flux-ip-adapter',
+  imageEncoderPath: 'openai/clip-vit-large-patch14',
+} as const
 
 // Banana 模型分辨率选项（仅用于九宫格分镜图，单张生成固定2K）
 export const BANANA_RESOLUTION_OPTIONS = [

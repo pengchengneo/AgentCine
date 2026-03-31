@@ -148,11 +148,21 @@
       "back": "← 返回",
       "saveDirty": "保存 *",
       "saved": "已保存",
-      "export": "导出视频"
+      "export": "导出视频",
+      "rendering": "渲染中...",
+      "download": "下载成片",
+      "renderFailed": "渲染失败"
     },
     "left": {
       "title": "素材库",
-      "description": "从视频阶段导入的片段将显示在这里"
+      "description": "从视频阶段导入的片段将显示在这里",
+      "tabClips": "片段",
+      "tabBgm": "BGM",
+      "bgmLoading": "加载中...",
+      "bgmEmpty": "暂无 BGM 素材",
+      "bgmAll": "全部",
+      "bgmAddToTrack": "添加到轨道",
+      "bgmPreview": "试听"
     },
     "right": {
       "title": "属性",
@@ -172,7 +182,9 @@
       "videoTrack": "视频",
       "emptyHint": "从素材库拖拽视频片段到这里",
       "audioTrack": "配音",
-      "audioBadge": "配"
+      "audioBadge": "配",
+      "bgmTrack": "BGM",
+      "bgmEmpty": "从 BGM 素材库添加背景音乐"
     },
     "transition": {
       "title": "转场效果",

@@ -3,6 +3,7 @@ import { type Job } from 'bullmq'
 import { createScopedLogger } from '@/lib/logging/core'
 import { withLogContext } from '@/lib/logging/context'
 import { generateImage, generateVideo } from '@/lib/generator-api'
+import type { IpAdapterOptions } from '@/lib/generators/base'
 import { generateLipSync } from '@/lib/lipsync'
 import { pollAsyncTask } from '@/lib/async-poll'
 import { getSignedUrl, toFetchableUrl } from '@/lib/storage'
@@ -172,6 +173,7 @@ export async function resolveImageSourceFromGeneration(
       resolution?: string
       size?: string
       provider?: string
+      ipAdapter?: IpAdapterOptions
     }
     allowTaskExternalIdResume?: boolean
     pollProgress?: { start?: number; end?: number }

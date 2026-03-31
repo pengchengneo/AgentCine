@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import {
     ART_STYLES,
     VIDEO_RATIOS,
+    IP_ADAPTER_MODELS,
 } from '@/lib/constants'
 import type {
     CapabilitySelections,
@@ -242,6 +243,36 @@ export function SettingsModal({
     const selectedEditOverrides = useMemo<Record<string, CapabilityValue>>(() => {
         return readCapabilitySelectionForModel(capabilityOverrides, editModel)
     }, [capabilityOverrides, editModel])
+
+    // 角色一致性模式（存储在 capabilityOverrides.__consistency）
+    const consistencyConfig = useMemo(() => {
+        const raw = capabilityOverrides?.['__consistency']
+        if (!isRecord(raw)) return { mode: 'standard' as const, ipAdapterScale: 0.7 }
+        return {
+            mode: (raw.mode === 'ip-adapter' ? 'ip-adapter' : 'standard') as 'standard' | 'ip-adapter',
+            ipAdapterScale: typeof raw.ipAdapterScale === 'number' ? raw.ipAdapterScale : 0.7,
+        }
+    }, [capabilityOverrides])
+
+    const isIpAdapterAvailable = useMemo(() => {
+        const currentImageModel = imageModel || ''
+        const modelId = currentImageModel.includes('::') ? currentImageModel.split('::').pop() || '' : currentImageModel
+        return IP_ADAPTER_MODELS.includes(modelId)
+    }, [imageModel])
+
+    const updateConsistencyConfig = (updates: Partial<{ mode: string; ipAdapterScale: number }>) => {
+        if (!onCapabilityOverridesChange) return
+        const next: CapabilitySelections = { ...(capabilityOverrides || {}) }
+        const current = isRecord(next['__consistency'])
+            ? { ...(next['__consistency'] as Record<string, CapabilityValue>) }
+            : { mode: 'standard', ipAdapterScale: 0.7 }
+        for (const [key, value] of Object.entries(updates)) {
+            if (value !== undefined) (current as Record<string, unknown>)[key] = value
+        }
+        next['__consistency'] = current
+        onCapabilityOverridesChange(next)
+        showSaved()
+    }
 
     const applyCapabilityOverride = (modelKey: string | undefined, field: string, value: string, sample: CapabilityValue) => {
         if (!modelKey || !onCapabilityOverridesChange) return
@@ -500,6 +531,59 @@ export function SettingsModal({
                                 options={VIDEO_RATIOS}
                             />
                         </div>
+                    </div>
+
+                    <div className="glass-surface-soft p-5 sm:p-6 space-y-4">
+                        <h3 className="text-sm font-semibold text-[var(--glass-text-tertiary)]">{t('consistencyMode')}</h3>
+                        <p className="text-xs text-[var(--glass-text-tertiary)]">{t('consistencyModeDesc')}</p>
+                        <div className="flex gap-3">
+                            <button
+                                className={`flex-1 p-3 rounded-lg border text-left transition-all ${
+                                    consistencyConfig.mode === 'standard'
+                                        ? 'border-[var(--glass-accent)] bg-[var(--glass-accent)]/10'
+                                        : 'border-[var(--glass-border)] hover:border-[var(--glass-border-hover)]'
+                                }`}
+                                onClick={() => updateConsistencyConfig({ mode: 'standard' })}
+                            >
+                                <div className="text-sm font-medium text-[var(--glass-text-primary)]">{t('consistencyStandard')}</div>
+                                <div className="text-xs text-[var(--glass-text-tertiary)] mt-1">{t('consistencyStandardDesc')}</div>
+                            </button>
+                            <button
+                                className={`flex-1 p-3 rounded-lg border text-left transition-all ${
+                                    !isIpAdapterAvailable ? 'opacity-50 cursor-not-allowed' : ''
+                                } ${
+                                    consistencyConfig.mode === 'ip-adapter'
+                                        ? 'border-[var(--glass-accent)] bg-[var(--glass-accent)]/10'
+                                        : 'border-[var(--glass-border)] hover:border-[var(--glass-border-hover)]'
+                                }`}
+                                onClick={() => isIpAdapterAvailable && updateConsistencyConfig({ mode: 'ip-adapter' })}
+                                disabled={!isIpAdapterAvailable}
+                            >
+                                <div className="text-sm font-medium text-[var(--glass-text-primary)]">{t('consistencyIpAdapter')}</div>
+                                <div className="text-xs text-[var(--glass-text-tertiary)] mt-1">{t('consistencyIpAdapterDesc')}</div>
+                            </button>
+                        </div>
+                        {consistencyConfig.mode === 'ip-adapter' && (
+                            <div className="space-y-2 pt-2">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm text-[var(--glass-text-secondary)]">{t('ipAdapterScale')}</label>
+                                    <span className="text-sm font-mono text-[var(--glass-text-tertiary)]">{consistencyConfig.ipAdapterScale.toFixed(1)}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-[var(--glass-text-tertiary)]">{t('ipAdapterScaleLow')}</span>
+                                    <input
+                                        type="range"
+                                        min="0.3"
+                                        max="1.0"
+                                        step="0.1"
+                                        value={consistencyConfig.ipAdapterScale}
+                                        onChange={(e) => updateConsistencyConfig({ ipAdapterScale: parseFloat(e.target.value) })}
+                                        className="flex-1 accent-[var(--glass-accent)]"
+                                    />
+                                    <span className="text-xs text-[var(--glass-text-tertiary)]">{t('ipAdapterScaleHigh')}</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

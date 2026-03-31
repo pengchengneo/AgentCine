@@ -10,6 +10,7 @@ import { logInfo as _ulogInfo } from '@/lib/logging/core'
 
 import { createAudioGenerator, createImageGenerator, createVideoGenerator } from './generators/factory'
 import type { GenerateResult } from './generators/base'
+import type { IpAdapterOptions } from './generators/base'
 import { getProviderConfig, getProviderKey, resolveModelSelection } from './api-config'
 import {
     generateImageViaOpenAICompat,
@@ -57,8 +58,9 @@ export async function generateImage(
         aspectRatio?: string
         resolution?: string
         outputFormat?: string
-        keepOriginalAspectRatio?: boolean  // 🔥 编辑时保持原图比例
-        size?: string  // 🔥 直接指定像素尺寸如 "5016x3344"（优先于 aspectRatio）
+        keepOriginalAspectRatio?: boolean  // 编辑时保持原图比例
+        size?: string  // 直接指定像素尺寸如 "5016x3344"（优先于 aspectRatio）
+        ipAdapter?: IpAdapterOptions  // IP-Adapter 角色一致性参数
     }
 ): Promise<GenerateResult> {
     const selection = await resolveModelSelection(userId, modelKey, 'image')

@@ -97,5 +97,26 @@
   "approveAll": "Approve All",
   "approvingAll": "Approving...",
   "reviewProgress": "{approved}/{total} reviewed",
-  "reviewScore": "Score"
+  "reviewScore": "Score",
+
+  "codexTitle": "Codex Auto-Edit",
+  "codexRun": "Auto-Edit",
+  "codexRunning": "Editing...",
+  "codexSuccess": "Edit complete",
+  "codexFailed": "Edit failed",
+  "codexSkillsApplied": "{count} edits applied",
+  "codexReason": "Reason",
+
+  "bgmLibrary": "BGM Library",
+  "bgmCategoryAction": "Action/Tense",
+  "bgmCategoryEmotional": "Emotional/Warm",
+  "bgmCategoryComedy": "Comedy/Light",
+  "bgmCategoryEpic": "Epic/Grand",
+  "bgmCategorySuspense": "Suspense/Horror",
+  "bgmCategoryPeaceful": "Peaceful/Calm",
+  "bgmUpload": "Upload BGM",
+  "bgmDelete": "Delete",
+  "bgmDuration": "{duration}s",
+  "oneClickFilm": "One-Click Film",
+  "assembling": "Assembling..."
 }

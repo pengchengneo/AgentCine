@@ -426,6 +426,7 @@ model User {
   taskEvents         TaskEvent[]
   graphRuns          GraphRun[]
   graphEvents        GraphEvent[]
+  bgmAssets          BgmAsset[]
 
   @@map("user")
 }
@@ -1046,4 +1047,22 @@ model StyleProfile {
   updatedAt      DateTime @updatedAt
 
   @@map("style_profiles")
+}
+
+model BgmAsset {
+  id        String   @id @default(uuid())
+  name      String
+  category  String
+  mood      String
+  duration  Int
+  audioUrl  String   @db.Text
+  mediaId   String?
+  isBuiltIn Boolean  @default(false)
+  userId    String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([category])
+  @@index([userId])
+  @@map("bgm_assets")
 }

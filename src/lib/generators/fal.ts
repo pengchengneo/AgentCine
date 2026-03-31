@@ -20,11 +20,13 @@ import {
     BaseVideoGenerator,
     ImageGenerateParams,
     VideoGenerateParams,
-    GenerateResult
+    GenerateResult,
+    IpAdapterOptions
 } from './base'
 import { getProviderConfig } from '@/lib/api-config'
 import { submitFalTask } from '@/lib/async-submit'
 import { normalizeToBase64ForGeneration } from '@/lib/media/outbound-image'
+import { IP_ADAPTER_DEFAULTS } from '@/lib/constants'
 
 // ============================================================
 // 图像模型端点映射（modelId → FAL 端点前缀）
@@ -33,6 +35,7 @@ import { normalizeToBase64ForGeneration } from '@/lib/media/outbound-image'
 const FAL_IMAGE_ENDPOINTS: Record<string, { base: string; edit: string }> = {
     'banana': { base: 'fal-ai/nano-banana-pro', edit: 'fal-ai/nano-banana-pro/edit' },
     'banana-2': { base: 'fal-ai/nano-banana-2', edit: 'fal-ai/nano-banana-2/edit' },
+    'flux-general': { base: 'fal-ai/flux-general', edit: 'fal-ai/flux-general' },
 }
 
 // ============================================================
@@ -61,7 +64,8 @@ export class FalImageGenerator extends BaseImageGenerator {
             aspectRatio,
             resolution,
             outputFormat = 'png',
-            modelId: optModelId = 'banana'
+            modelId: optModelId = 'banana',
+            ipAdapter,
         } = options as {
             aspectRatio?: string
             resolution?: string
@@ -69,6 +73,7 @@ export class FalImageGenerator extends BaseImageGenerator {
             provider?: string
             modelId?: string
             modelKey?: string
+            ipAdapter?: IpAdapterOptions
         }
 
         const allowedOptionKeys = new Set([
@@ -78,6 +83,7 @@ export class FalImageGenerator extends BaseImageGenerator {
             'aspectRatio',
             'resolution',
             'outputFormat',
+            'ipAdapter',
         ])
         for (const [key, value] of Object.entries(options)) {
             if (value === undefined) continue
@@ -89,10 +95,12 @@ export class FalImageGenerator extends BaseImageGenerator {
             throw new Error(`FAL_IMAGE_OPTION_VALUE_UNSUPPORTED: resolution=${resolution}`)
         }
 
+        const isFluxGeneral = optModelId === 'flux-general'
+
         // 根据 modelId 和是否有参考图片选择端点
         const hasReferenceImages = referenceImages.length > 0
         const endpointConfig = FAL_IMAGE_ENDPOINTS[optModelId] || FAL_IMAGE_ENDPOINTS['banana']
-        const endpoint = hasReferenceImages ? endpointConfig.edit : endpointConfig.base
+        const endpoint = hasReferenceImages && !isFluxGeneral ? endpointConfig.edit : endpointConfig.base
 
         const logger = createScopedLogger({
             module: 'worker.fal-image',
@@ -105,11 +113,27 @@ export class FalImageGenerator extends BaseImageGenerator {
                 endpoint,
                 referenceImagesCount: referenceImages.length,
                 hasReferenceImages,
+                hasIpAdapter: !!ipAdapter,
                 resolution: resolution ?? null,
                 aspectRatio: aspectRatio ?? null,
                 referenceImageUrls: referenceImages.map((u: string) => u.substring(0, 100)),
             },
         })
+
+        // flux-general 使用不同的请求体格式
+        if (isFluxGeneral) {
+            return await this.doGenerateFluxGeneral({
+                userId,
+                apiKey,
+                prompt,
+                referenceImages,
+                ipAdapter,
+                aspectRatio,
+                outputFormat,
+                endpoint,
+                logger,
+            })
+        }
 
         const body: Record<string, unknown> = {
             prompt,
@@ -124,7 +148,7 @@ export class FalImageGenerator extends BaseImageGenerator {
         }
 
         if (hasReferenceImages) {
-            // 🔥 转换参考图片为Data URL（适配内网/本地环境）
+            // 转换参考图片为Data URL（适配内网/本地环境）
             const dataUrls = await Promise.all(
                 referenceImages.map(async (url: string) => {
                     // 如果已经是data URL，直接返回
@@ -183,7 +207,120 @@ export class FalImageGenerator extends BaseImageGenerator {
             async: true,
             requestId,        // 向后兼容
             endpoint,         // 向后兼容
-            externalId: `FAL:IMAGE:${endpoint}:${requestId}`  // 🔥 标准格式
+            externalId: `FAL:IMAGE:${endpoint}:${requestId}`  // 标准格式
+        }
+    }
+
+    /**
+     * FLUX General 端点专用生成逻辑（支持 IP-Adapter）
+     */
+    private async doGenerateFluxGeneral(params: {
+        userId: string
+        apiKey: string
+        prompt: string
+        referenceImages: string[]
+        ipAdapter?: IpAdapterOptions
+        aspectRatio?: string
+        outputFormat?: string
+        endpoint: string
+        logger: ReturnType<typeof createScopedLogger>
+    }): Promise<GenerateResult> {
+        const { apiKey, prompt, referenceImages, ipAdapter, aspectRatio, outputFormat, endpoint, logger } = params
+
+        const body: Record<string, unknown> = {
+            prompt,
+            num_images: 1,
+            output_format: outputFormat || 'png',
+            num_inference_steps: 28,
+            guidance_scale: 3.5,
+            enable_safety_checker: false,
+        }
+
+        // 设置图片尺寸（通过 image_size 参数）
+        if (aspectRatio) {
+            const sizeMap: Record<string, string> = {
+                '16:9': 'landscape_16_9',
+                '9:16': 'portrait_16_9',
+                '4:3': 'landscape_4_3',
+                '3:4': 'portrait_4_3',
+                '1:1': 'square_hd',
+                '3:2': 'landscape_4_3',
+                '2:3': 'portrait_4_3',
+            }
+            body.image_size = sizeMap[aspectRatio] || 'landscape_16_9'
+        }
+
+        // IP-Adapter 配置
+        if (ipAdapter?.imageUrl) {
+            const adapterImageUrl = ipAdapter.imageUrl.startsWith('data:')
+                ? ipAdapter.imageUrl
+                : await normalizeToBase64ForGeneration(ipAdapter.imageUrl)
+
+            body.ip_adapters = [{
+                path: ipAdapter.path || IP_ADAPTER_DEFAULTS.path,
+                image_encoder_path: ipAdapter.imageEncoderPath || IP_ADAPTER_DEFAULTS.imageEncoderPath,
+                image_url: adapterImageUrl,
+                scale: ipAdapter.scale ?? IP_ADAPTER_DEFAULTS.scale,
+            }]
+
+            logger.info({
+                message: 'FLUX General IP-Adapter configured',
+                details: {
+                    scale: ipAdapter.scale ?? IP_ADAPTER_DEFAULTS.scale,
+                    path: ipAdapter.path || IP_ADAPTER_DEFAULTS.path,
+                    imageSize: `${Math.round((adapterImageUrl).length / 1024)}KB`,
+                },
+            })
+        }
+
+        // 参考图片作为 reference_image（仅第一张）
+        if (referenceImages.length > 0) {
+            const refUrl = referenceImages[0].startsWith('data:')
+                ? referenceImages[0]
+                : await normalizeToBase64ForGeneration(referenceImages[0])
+            body.reference_image_url = refUrl
+            body.reference_strength = 0.65
+        }
+
+        logger.info({
+            message: 'FLUX General request body summary',
+            details: {
+                url: `https://queue.fal.run/${endpoint}`,
+                promptLength: prompt.length,
+                hasIpAdapter: !!(ipAdapter?.imageUrl),
+                hasReferenceImage: referenceImages.length > 0,
+                imageSize: body.image_size ?? null,
+            },
+        })
+
+        const submitResponse = await fetch(`https://queue.fal.run/${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Key ${apiKey}`
+            },
+            body: JSON.stringify(body),
+            cache: 'no-store'
+        })
+
+        if (!submitResponse.ok) {
+            const errorText = await submitResponse.text()
+            throw new Error(`FAL FLUX General 提交失败 (${submitResponse.status}): ${errorText}`)
+        }
+
+        const submitData = await submitResponse.json()
+        const requestId = submitData.request_id
+
+        if (!requestId) {
+            throw new Error('FAL FLUX General 未返回 request_id')
+        }
+
+        return {
+            success: true,
+            async: true,
+            requestId,
+            endpoint,
+            externalId: `FAL:IMAGE:${endpoint}:${requestId}`
         }
     }
 }

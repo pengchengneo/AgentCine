@@ -148,11 +148,21 @@
       "back": "← Back",
       "saveDirty": "Save *",
       "saved": "Saved",
-      "export": "Export Video"
+      "export": "Export Video",
+      "rendering": "Rendering...",
+      "download": "Download",
+      "renderFailed": "Render failed"
     },
     "left": {
       "title": "Media Library",
-      "description": "Clips imported from the video stage will appear here"
+      "description": "Clips imported from the video stage will appear here",
+      "tabClips": "Clips",
+      "tabBgm": "BGM",
+      "bgmLoading": "Loading...",
+      "bgmEmpty": "No BGM available",
+      "bgmAll": "All",
+      "bgmAddToTrack": "Add to Track",
+      "bgmPreview": "Preview"
     },
     "right": {
       "title": "Properties",
@@ -172,7 +182,9 @@
       "videoTrack": "Video",
       "emptyHint": "Drag video clips from media library to here",
       "audioTrack": "Voice",
-      "audioBadge": "A"
+      "audioBadge": "A",
+      "bgmTrack": "BGM",
+      "bgmEmpty": "Add background music from BGM library"
     },
     "transition": {
       "title": "Transition",
