@@ -54,6 +54,33 @@ export const AGENT_IDENTITIES: AgentIdentity[] = [
     nameKey: 'agentProducer',
     roleKey: 'agentRoleProducer',
   },
+  {
+    stepKey: 'video_generation_agent',
+    phaseKey: 'video',
+    icon: 'video',
+    gradientClass: 'from-rose-500 to-pink-500',
+    accentColor: 'text-rose-400',
+    nameKey: 'agentVideo',
+    roleKey: 'agentRoleVideo',
+  },
+  {
+    stepKey: 'voice_generation_agent',
+    phaseKey: 'voice',
+    icon: 'mic',
+    gradientClass: 'from-sky-500 to-indigo-500',
+    accentColor: 'text-sky-400',
+    nameKey: 'agentVoice',
+    roleKey: 'agentRoleVoice',
+  },
+  {
+    stepKey: 'assembly_agent',
+    phaseKey: 'assembly',
+    icon: 'film',
+    gradientClass: 'from-yellow-500 to-orange-500',
+    accentColor: 'text-yellow-400',
+    nameKey: 'agentAssembly',
+    roleKey: 'agentRoleAssembly',
+  },
 ]
 
 export function getAgentByStepKey(stepKey: string): AgentIdentity | undefined {

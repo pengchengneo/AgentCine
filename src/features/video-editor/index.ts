@@ -33,6 +33,10 @@ export {
     validateProjectData
 } from './utils/migration'
 
+export {
+    autoAssembleFromEpisode
+} from './utils/auto-assembly'
+
 // Components
 export { VideoEditorStage } from './components/VideoEditorStage'
 export { TransitionPicker } from './components/TransitionPicker'

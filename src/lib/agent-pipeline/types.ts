@@ -21,6 +21,9 @@ export const PIPELINE_PHASE = {
   ART: 'art',
   STORYBOARD: 'storyboard',
   REVIEW: 'review',
+  VIDEO: 'video',
+  VOICE: 'voice',
+  ASSEMBLY: 'assembly',
 } as const
 
 export type PipelinePhase = (typeof PIPELINE_PHASE)[keyof typeof PIPELINE_PHASE]

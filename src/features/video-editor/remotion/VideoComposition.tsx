@@ -1,5 +1,5 @@
 import React from 'react'
-import { AbsoluteFill, Sequence, Video, Audio, useCurrentFrame, interpolate } from 'remotion'
+import { AbsoluteFill, Sequence, Video, Audio, Img, useCurrentFrame, interpolate } from 'remotion'
 import { VideoClip, BgmClip, EditorConfig } from '../types/editor.types'
 import { computeClipPositions } from '../utils/time-utils'
 
@@ -159,18 +159,32 @@ const ClipRenderer: React.FC<ClipRendererProps> = ({
         }
     }
 
+    // Detect if source is an image or video
+    const isImage = /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(clip.src) || clip.src.includes('/m/')
+
     return (
         <AbsoluteFill style={{ opacity, transform }}>
-            {/* 视频 */}
-            <Video
-                src={clip.src}
-                startFrom={clip.trim?.from || 0}
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover'
-                }}
-            />
+            {/* 视频或图片 */}
+            {isImage ? (
+                <Img
+                    src={clip.src}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                    }}
+                />
+            ) : (
+                <Video
+                    src={clip.src}
+                    startFrom={clip.trim?.from || 0}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                    }}
+                />
+            )}
 
             {/* 附属配音 */}
             {clip.attachment?.audio && (

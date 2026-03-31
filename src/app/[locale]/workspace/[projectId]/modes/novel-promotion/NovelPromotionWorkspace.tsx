@@ -15,6 +15,8 @@ import { AgentModeToggle } from './components/agent-pipeline/AgentModeToggle'
 import { ReviewPanel } from './components/ReviewPanel'
 import { WorkspaceStageRuntimeProvider } from './WorkspaceStageRuntimeContext'
 import { useNovelPromotionWorkspaceController } from './hooks/useNovelPromotionWorkspaceController'
+import { VideoEditorStage } from '@/features/video-editor'
+import type { VideoEditorProject } from '@/features/video-editor'
 import type { NovelPromotionWorkspaceProps } from './types'
 import '@/styles/animations.css'
 
@@ -23,6 +25,7 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
   const tProgress = useTranslations('progress')
   const [isAgentMode, setIsAgentMode] = useState(true)
   const [pipelineRunId, setPipelineRunId] = useState<string | null>(null)
+  const [editorProject, setEditorProject] = useState<VideoEditorProject | null>(null)
 
   const {
     project,
@@ -84,6 +87,21 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
     return <div className="text-center text-(--glass-text-secondary)">{vm.i18n.tc('loading')}</div>
   }
 
+  // Editor view - full screen
+  if (editorProject) {
+    return (
+      <div>
+        <AnimatedBackground />
+        <VideoEditorStage
+          projectId={projectId}
+          episodeId={episodeId ?? ''}
+          initialProject={editorProject}
+          onBack={() => setEditorProject(null)}
+        />
+      </div>
+    )
+  }
+
   return (
     <div>
       <AnimatedBackground />
@@ -137,10 +155,33 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
             <div className="w-80 flex-shrink-0">
               <AgentPipelineDashboard
                 projectId={projectId}
+                episodeId={episodeId ?? ''}
                 novelText={vm.project.novelText}
                 disabled={!vm.project.novelText?.trim()}
                 pipelineRunId={pipelineRunId}
                 onStarted={setPipelineRunId}
+                onEnterEditor={async () => {
+                  // Load editor project for this episode
+                  if (!episodeId) {
+                    console.error('[Editor] No episodeId available')
+                    return
+                  }
+                  try {
+                    const res = await fetch(`/api/novel-promotion/${projectId}/editor?episodeId=${episodeId}`)
+                    if (res.ok) {
+                      const data = await res.json()
+                      if (data.projectData) {
+                        setEditorProject(typeof data.projectData === 'string' ? JSON.parse(data.projectData) : data.projectData)
+                      } else {
+                        console.error('[Editor] No projectData in response', data)
+                      }
+                    } else {
+                      console.error('[Editor] Load failed:', res.status)
+                    }
+                  } catch (err) {
+                    console.error('[Editor] Load error:', err)
+                  }
+                }}
               />
             </div>
             {/* Right content: Review Panel */}

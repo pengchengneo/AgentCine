@@ -18,17 +18,19 @@ import {
     useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { VideoClip, TimelineState, EditorConfig } from '../../types/editor.types'
+import { VideoClip, BgmClip, TimelineState, EditorConfig } from '../../types/editor.types'
 import { framesToTime } from '../../utils/time-utils'
 
 interface TimelineProps {
     clips: VideoClip[]
+    bgmTrack?: BgmClip[]
     timelineState: TimelineState
     config: EditorConfig
     onReorder: (fromIndex: number, toIndex: number) => void
     onSelectClip: (clipId: string | null) => void
     onZoomChange: (zoom: number) => void
     onSeek?: (frame: number) => void
+    onRemoveBgm?: (bgmId: string) => void
 }
 
 /**
@@ -37,12 +39,14 @@ interface TimelineProps {
  */
 export const Timeline: React.FC<TimelineProps> = ({
     clips,
+    bgmTrack = [],
     timelineState,
     config,
     onReorder,
     onSelectClip,
     onZoomChange,
-    onSeek
+    onSeek,
+    onRemoveBgm
 }) => {
     const t = useTranslations('video')
     // 计算总时长和播放头位置
@@ -271,8 +275,62 @@ export const Timeline: React.FC<TimelineProps> = ({
                     width: '70px',
                     flexShrink: 0
                 }}>
-                    BGM
+                    {t('editor.timeline.bgmTrack')}
                 </span>
+                <div style={{ display: 'flex', gap: '4px', flex: 1, position: 'relative', height: '28px' }}>
+                    {bgmTrack.length === 0 ? (
+                        <span style={{ fontSize: '10px', color: 'var(--glass-text-tertiary)', alignSelf: 'center' }}>
+                            {t('editor.timeline.bgmEmpty')}
+                        </span>
+                    ) : (
+                        bgmTrack.map((bgm) => (
+                            <div
+                                key={bgm.id}
+                                style={{
+                                    position: 'absolute',
+                                    left: `${bgm.startFrame * timelineState.zoom * 2}px`,
+                                    width: `${bgm.durationInFrames * timelineState.zoom * 2}px`,
+                                    minWidth: '40px',
+                                    height: '28px',
+                                    background: 'linear-gradient(90deg, var(--glass-accent-from), var(--glass-accent-to))',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    color: 'var(--glass-text-on-accent)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '0 6px',
+                                    cursor: 'pointer',
+                                    opacity: 0.85,
+                                }}
+                            >
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    BGM {Math.round(bgm.volume * 100)}%
+                                </span>
+                                {onRemoveBgm && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            onRemoveBgm(bgm.id)
+                                        }}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            color: 'var(--glass-text-on-accent)',
+                                            cursor: 'pointer',
+                                            fontSize: '12px',
+                                            padding: '0 2px',
+                                            lineHeight: 1,
+                                            opacity: 0.7,
+                                        }}
+                                    >
+                                        ×
+                                    </button>
+                                )}
+                            </div>
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     )

@@ -87,13 +87,20 @@ export async function startPipeline(params: {
     config,
   })
     .then(async () => {
-      await prisma.pipelineRun.update({
+      // Assembly node sets COMPLETED — only update if still RUNNING
+      const current = await prisma.pipelineRun.findUnique({
         where: { id: pipelineRun.id },
-        data: {
-          status: PIPELINE_STATUS.REVIEW,
-          completedAt: new Date(),
-        },
+        select: { status: true },
       })
+      if (current?.status === PIPELINE_STATUS.RUNNING) {
+        await prisma.pipelineRun.update({
+          where: { id: pipelineRun.id },
+          data: {
+            status: PIPELINE_STATUS.COMPLETED,
+            completedAt: new Date(),
+          },
+        })
+      }
     })
     .catch(async (error: unknown) => {
       const message = error instanceof Error ? error.message : String(error)

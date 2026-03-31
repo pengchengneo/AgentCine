@@ -5,7 +5,7 @@ import type { PipelineState } from '../state'
 import { prisma } from '@/lib/prisma'
 import { evaluatePhaseQuality } from '../../quality/quality-gate'
 import { createReviewItems } from '../../review/review-service'
-import { PIPELINE_STATUS, REVIEW_STATUS } from '../../types'
+import { REVIEW_STATUS } from '../../types'
 import { appendPipelineLog } from '../../pipeline-log'
 import { createScopedLogger } from '@/lib/logging/core'
 
@@ -97,26 +97,24 @@ export async function runProducerQualityCheck(
   })
 
   if (pendingCount === 0) {
+    // All auto-passed — pipeline continues to video/voice/assembly nodes
     await prisma.pipelineRun.update({
       where: { id: state.pipelineRunId },
       data: {
-        status: PIPELINE_STATUS.COMPLETED,
-        currentPhase: 'review',
-        completedAt: new Date(),
+        currentPhase: 'video',
       },
     })
-    state.currentPhase = 'review'
-    await log(`全部自动通过，Pipeline 已完成`)
+    state.currentPhase = 'video'
+    await log(`全部自动通过，继续视频/配音/成片流程`)
   } else {
     await prisma.pipelineRun.update({
       where: { id: state.pipelineRunId },
       data: {
-        status: PIPELINE_STATUS.REVIEW,
-        currentPhase: 'review',
+        currentPhase: 'video',
       },
     })
-    state.currentPhase = 'review'
-    await log(`${pendingCount} 项待人工审核`)
+    state.currentPhase = 'video'
+    await log(`${pendingCount} 项待审核，继续视频/配音/成片流程`)
   }
 
   await log(`质量检查完成，共创建 ${characters.length + locations.length + panels.length} 个审核项`)

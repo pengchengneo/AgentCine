@@ -2,7 +2,7 @@
 import { logError as _ulogError } from '@/lib/logging/core'
 import { useTranslations } from 'next-intl'
 
-import React from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { AppIcon } from '@/components/ui/icons'
 import { useEditorState } from '../hooks/useEditorState'
 import { useEditorActions } from '../hooks/useEditorActions'
@@ -11,6 +11,7 @@ import { calculateTimelineDuration, framesToTime } from '../utils/time-utils'
 import { RemotionPreview } from './Preview'
 import { Timeline } from './Timeline'
 import { TransitionPicker, TransitionType } from './TransitionPicker'
+import { MediaLibraryPanel } from './MediaLibraryPanel'
 
 interface VideoEditorStageProps {
     projectId: string
@@ -21,7 +22,7 @@ interface VideoEditorStageProps {
 
 /**
  * 视频编辑器主页面
- * 
+ *
  * 布局:
  * ┌──────────────────────────────────────────────────────────┐
  * │ Toolbar (返回 | 保存 | 导出)                              │
@@ -48,6 +49,8 @@ export function VideoEditorStage({
         removeClip,
         updateClip,
         reorderClips,
+        addBgm,
+        removeBgm,
         play,
         pause,
         seek,
@@ -56,7 +59,38 @@ export function VideoEditorStage({
         markSaved
     } = useEditorState({ episodeId, initialProject })
 
-    const { saveProject, startRender } = useEditorActions({ projectId, episodeId })
+    const { saveProject, startRender, getRenderStatus } = useEditorActions({ projectId, episodeId })
+
+    // Render status tracking
+    const [renderStatus, setRenderStatus] = useState<'idle' | 'pending' | 'rendering' | 'completed' | 'failed'>('idle')
+    const [renderOutputUrl, setRenderOutputUrl] = useState<string | null>(null)
+    const renderPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+    const pollRenderStatus = useCallback(async () => {
+        try {
+            const data = await getRenderStatus()
+            setRenderStatus(data.status || 'idle')
+            if (data.outputUrl) {
+                setRenderOutputUrl(data.outputUrl)
+            }
+            if (data.status === 'completed' || data.status === 'failed') {
+                if (renderPollRef.current) {
+                    clearInterval(renderPollRef.current)
+                    renderPollRef.current = null
+                }
+            }
+        } catch {
+            // Ignore poll errors
+        }
+    }, [getRenderStatus])
+
+    useEffect(() => {
+        return () => {
+            if (renderPollRef.current) {
+                clearInterval(renderPollRef.current)
+            }
+        }
+    }, [])
 
     const totalDuration = calculateTimelineDuration(project.timeline)
     const totalTime = framesToTime(totalDuration, project.config.fps)
@@ -75,8 +109,14 @@ export function VideoEditorStage({
 
     const handleExport = async () => {
         try {
-            await startRender(project.id)
-            alert(t('editor.alert.exportStarted'))
+            // Save first before rendering
+            await saveProject(project)
+            markSaved()
+            await startRender()
+            setRenderStatus('pending')
+            // Start polling for status
+            if (renderPollRef.current) clearInterval(renderPollRef.current)
+            renderPollRef.current = setInterval(pollRenderStatus, 3000)
         } catch (error) {
             _ulogError('Export failed:', error)
             alert(t('editor.alert.exportFailed'))
@@ -124,10 +164,27 @@ export function VideoEditorStage({
 
                 <button
                     onClick={handleExport}
-                    className="glass-btn-base glass-btn-tone-success px-4 py-2"
+                    disabled={renderStatus === 'pending' || renderStatus === 'rendering'}
+                    className="glass-btn-base glass-btn-tone-success px-4 py-2 disabled:opacity-50"
                 >
-                    {t('editor.toolbar.export')}
+                    {renderStatus === 'pending' || renderStatus === 'rendering'
+                        ? t('editor.toolbar.rendering')
+                        : t('editor.toolbar.export')}
                 </button>
+
+                {renderStatus === 'completed' && renderOutputUrl && (
+                    <a
+                        href={renderOutputUrl}
+                        download
+                        className="glass-btn-base px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700"
+                    >
+                        {t('editor.toolbar.download')}
+                    </a>
+                )}
+
+                {renderStatus === 'failed' && (
+                    <span className="text-xs text-red-400">{t('editor.toolbar.renderFailed')}</span>
+                )}
             </div>
 
             {/* Main Content */}
@@ -137,19 +194,11 @@ export function VideoEditorStage({
                 overflow: 'hidden'
             }}>
                 {/* Left Panel - Media Library */}
-                <div style={{
-                    width: '200px',
-                    borderRight: '1px solid var(--glass-stroke-base)',
-                    padding: '12px',
-                    background: 'var(--glass-bg-surface-strong)'
-                }}>
-                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--glass-text-secondary)' }}>
-                        {t('editor.left.title')}
-                    </h3>
-                    <p style={{ fontSize: '12px', color: 'var(--glass-text-tertiary)' }}>
-                        {t('editor.left.description')}
-                    </p>
-                </div>
+                <MediaLibraryPanel
+                    onAddBgm={addBgm}
+                    fps={project.config.fps}
+                    totalFrames={totalDuration}
+                />
 
                 {/* Center - Preview + Properties */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -226,7 +275,6 @@ export function VideoEditorStage({
                     </h3>
                     {selectedClip ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            {/* 基础信息 */}
                             <div style={{ fontSize: '12px' }}>
                                 <p style={{ margin: '0 0 8px 0' }}>
                                     <span style={{ color: 'var(--glass-text-secondary)' }}>{t('editor.right.clipLabel')}</span> {selectedClip.metadata?.description || t('editor.right.clipFallback', { index: project.timeline.findIndex(c => c.id === selectedClip.id) + 1 })}
@@ -236,7 +284,6 @@ export function VideoEditorStage({
                                 </p>
                             </div>
 
-                            {/* 转场设置 */}
                             <div>
                                 <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--glass-text-secondary)' }}>
                                     {t('editor.right.transitionLabel')}
@@ -252,7 +299,6 @@ export function VideoEditorStage({
                                 />
                             </div>
 
-                            {/* 删除按钮 */}
                             <button
                                 onClick={() => {
                                     if (confirm(t('editor.right.deleteConfirm'))) {
@@ -280,12 +326,14 @@ export function VideoEditorStage({
             }}>
                 <Timeline
                     clips={project.timeline}
+                    bgmTrack={project.bgmTrack}
                     timelineState={timelineState}
                     config={project.config}
                     onReorder={reorderClips}
                     onSelectClip={selectClip}
                     onZoomChange={setZoom}
                     onSeek={seek}
+                    onRemoveBgm={removeBgm}
                 />
             </div>
         </div>

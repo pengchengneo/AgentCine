@@ -9,18 +9,22 @@ import { PipelineLogStream } from './PipelineLogStream'
 
 type Props = {
   projectId: string
+  episodeId: string
   novelText: string
   disabled: boolean
   pipelineRunId: string | null
   onStarted: (pipelineRunId: string) => void
+  onEnterEditor: () => void
 }
 
 export function AgentPipelineDashboard({
   projectId,
+  episodeId,
   novelText,
   disabled,
   pipelineRunId,
   onStarted,
+  onEnterEditor,
 }: Props) {
   const { data } = usePipelineStatus(projectId, true)
 
@@ -38,11 +42,13 @@ export function AgentPipelineDashboard({
     <div className="glass-surface rounded-xl p-5 space-y-4 sticky top-28">
       <PipelineActionBar
         projectId={projectId}
+        episodeId={episodeId}
         novelText={novelText}
         disabled={disabled}
         pipelineStatus={data?.status}
         runId={data?.runId ?? null}
         onStarted={onStarted}
+        onEnterEditor={onEnterEditor}
       />
 
       <div className="glass-divider" />

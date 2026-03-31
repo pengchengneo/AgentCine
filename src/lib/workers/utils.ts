@@ -3,6 +3,7 @@ import { type Job } from 'bullmq'
 import { createScopedLogger } from '@/lib/logging/core'
 import { withLogContext } from '@/lib/logging/context'
 import { generateImage, generateVideo } from '@/lib/generator-api'
+import type { IpAdapterOptions } from '@/lib/generators/base'
 import { generateLipSync } from '@/lib/lipsync'
 import { pollAsyncTask } from '@/lib/async-poll'
 import { getSignedUrl, toFetchableUrl } from '@/lib/storage'
@@ -172,6 +173,7 @@ export async function resolveImageSourceFromGeneration(
       resolution?: string
       size?: string
       provider?: string
+      ipAdapter?: IpAdapterOptions
     }
     allowTaskExternalIdResume?: boolean
     pollProgress?: { start?: number; end?: number }
@@ -565,6 +567,19 @@ export function toSignedUrlIfCos(keyOrUrl: string | null | undefined, ttlSeconds
   return keyOrUrl.startsWith('images/') || keyOrUrl.startsWith('voice/') || keyOrUrl.startsWith('video/')
     ? getSignedUrl(keyOrUrl, ttlSeconds)
     : keyOrUrl
+}
+
+/**
+ * Like toSignedUrlIfCos but returns a real presigned URL (not a browser-relative path).
+ * Use this in workers that need to fetch the object directly (e.g. video worker).
+ */
+export async function toDirectSignedUrl(keyOrUrl: string | null | undefined, ttlSeconds = 3600): Promise<string | null> {
+  if (!keyOrUrl) return null
+  if (keyOrUrl.startsWith('images/') || keyOrUrl.startsWith('voice/') || keyOrUrl.startsWith('video/')) {
+    const { getSignedObjectUrl } = await import('@/lib/storage')
+    return await getSignedObjectUrl(keyOrUrl, ttlSeconds)
+  }
+  return keyOrUrl
 }
 
 export async function getProjectModels(projectId: string, userId: string) {

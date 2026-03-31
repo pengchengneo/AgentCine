@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { AppIcon } from '@/components/ui/icons'
@@ -7,11 +8,13 @@ import { queryKeys } from '@/lib/query/keys'
 
 type Props = {
   projectId: string
+  episodeId: string
   novelText: string
   disabled: boolean
   pipelineStatus?: string
   runId: string | null
   onStarted: (pipelineRunId: string) => void
+  onEnterEditor: () => void
 }
 
 function StatusBadge({ status, t }: { status: string; t: (key: string) => string }) {
@@ -58,14 +61,94 @@ function StatusBadge({ status, t }: { status: string; t: (key: string) => string
 
 export function PipelineActionBar({
   projectId,
+  episodeId,
   novelText,
   disabled,
   pipelineStatus,
   runId,
   onStarted,
+  onEnterEditor,
 }: Props) {
   const t = useTranslations('pipeline')
   const queryClient = useQueryClient()
+  const [isAssembling, setIsAssembling] = useState(false)
+  const [renderStatus, setRenderStatus] = useState<'idle' | 'pending' | 'rendering' | 'completed' | 'failed'>('idle')
+  const [renderOutputUrl, setRenderOutputUrl] = useState<string | null>(null)
+  const renderPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Check initial render status when pipeline is completed
+  useEffect(() => {
+    if (pipelineStatus !== 'completed' || !episodeId) return
+    const checkRenderStatus = async () => {
+      try {
+        const res = await fetch(`/api/novel-promotion/${projectId}/editor/render?episodeId=${episodeId}`)
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.status && data.status !== 'idle') {
+          setRenderStatus(data.status)
+          if (data.outputUrl) setRenderOutputUrl(data.outputUrl)
+        }
+      } catch { /* ignore */ }
+    }
+    checkRenderStatus()
+  }, [pipelineStatus, projectId, episodeId])
+
+  // Cleanup poll on unmount
+  useEffect(() => {
+    return () => {
+      if (renderPollRef.current) clearInterval(renderPollRef.current)
+    }
+  }, [])
+
+  const pollRenderStatus = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/novel-promotion/${projectId}/editor/render?episodeId=${episodeId}`)
+      if (!res.ok) return
+      const data = await res.json()
+      setRenderStatus(data.status || 'idle')
+      if (data.outputUrl) setRenderOutputUrl(data.outputUrl)
+      if (data.status === 'completed' || data.status === 'failed') {
+        if (renderPollRef.current) {
+          clearInterval(renderPollRef.current)
+          renderPollRef.current = null
+        }
+      }
+    } catch { /* ignore */ }
+  }, [projectId, episodeId])
+
+  const handleRenderAndDownload = async () => {
+    setRenderStatus('pending')
+    try {
+      // Step 1: Auto-assemble (ensure editor project exists)
+      const assembleRes = await fetch(`/api/novel-promotion/${projectId}/editor/auto-assemble`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ episodeId }),
+      })
+      if (!assembleRes.ok) {
+        setRenderStatus('failed')
+        return
+      }
+
+      // Step 2: Start render
+      const renderRes = await fetch(`/api/novel-promotion/${projectId}/editor/render`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ episodeId, format: 'mp4', quality: 'high' }),
+      })
+      if (!renderRes.ok) {
+        setRenderStatus('failed')
+        return
+      }
+
+      // Step 3: Poll for completion
+      setRenderStatus('rendering')
+      if (renderPollRef.current) clearInterval(renderPollRef.current)
+      renderPollRef.current = setInterval(pollRenderStatus, 3000)
+    } catch {
+      setRenderStatus('failed')
+    }
+  }
 
   const startMutation = useMutation({
     mutationFn: async () => {
@@ -128,6 +211,27 @@ export function PipelineActionBar({
   const isFailed = pipelineStatus === 'failed'
   const canStart = !isRunning && !isPaused && !isReview && !isCompleted && !disabled && !!novelText?.trim() && !startMutation.isPending
 
+  const handleAutoAssemble = async () => {
+    setIsAssembling(true)
+    try {
+      const res = await fetch(`/api/novel-promotion/${projectId}/editor/auto-assemble`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ episodeId }),
+      })
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        console.error('[一键成片] auto-assemble failed:', res.status, errData)
+        return
+      }
+      onEnterEditor()
+    } catch (err) {
+      console.error('[一键成片] auto-assemble error:', err)
+    } finally {
+      setIsAssembling(false)
+    }
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -142,9 +246,46 @@ export function PipelineActionBar({
             <span>{t('reviewGuidance')}</span>
           </div>
         ) : isCompleted ? (
-          <div className="flex-1 flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-100 to-amber-50 border border-orange-200 px-4 py-2.5 text-sm font-semibold text-emerald-700">
-            <AppIcon name="checkCircle" className="h-4 w-4 shrink-0 text-emerald-600" />
-            <span>{t('pipelineCompleted')}</span>
+          <div className="flex-1 flex flex-col gap-2">
+            <div className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-100 to-amber-50 border border-orange-200 px-4 py-2.5 text-sm font-semibold text-emerald-700">
+              <AppIcon name="checkCircle" className="h-4 w-4 shrink-0 text-emerald-600" />
+              <span>{t('pipelineCompleted')}</span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleAutoAssemble}
+                disabled={isAssembling}
+                className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-violet-600 px-4 py-2.5 text-sm font-medium text-violet-600 hover:bg-violet-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <AppIcon name="video" className="h-4 w-4" />
+                {isAssembling ? t('assembling') : t('oneClickFilm')}
+              </button>
+              {renderStatus === 'completed' && renderOutputUrl ? (
+                <a
+                  href={renderOutputUrl}
+                  download="output.mp4"
+                  className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:from-violet-700 hover:to-indigo-700 transition-colors"
+                >
+                  <AppIcon name="download" className="h-4 w-4" />
+                  {t('downloadFilm')}
+                </a>
+              ) : (
+                <button
+                  onClick={handleRenderAndDownload}
+                  disabled={renderStatus === 'pending' || renderStatus === 'rendering'}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:from-violet-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <AppIcon name="download" className="h-4 w-4" />
+                  {renderStatus === 'pending' ? t('assembling') : renderStatus === 'rendering' ? t('renderingFilm') : t('renderDownload')}
+                </button>
+              )}
+            </div>
+            {renderStatus === 'failed' && (
+              <div className="flex items-center gap-1.5 text-xs text-red-500">
+                <AppIcon name="alertCircle" className="h-3 w-3" />
+                {t('renderFailed')}
+              </div>
+            )}
           </div>
         ) : !isRunning && !isPaused ? (
           <button

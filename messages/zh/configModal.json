@@ -31,5 +31,14 @@
     "cancel": "取消",
     "delete": "删除",
     "boolOn": "开",
-    "boolOff": "关"
+    "boolOff": "关",
+    "consistencyMode": "角色一致性模式",
+    "consistencyModeDesc": "选择角色一致性策略。IP-Adapter 增强模式通过模型级参考提升角色外观一致性。",
+    "consistencyStandard": "标准模式",
+    "consistencyStandardDesc": "使用提示词 + 参考图注入",
+    "consistencyIpAdapter": "IP-Adapter 增强",
+    "consistencyIpAdapterDesc": "通过 IP-Adapter 实现模型级一致性（仅 FAL FLUX 模型）",
+    "ipAdapterScale": "IP-Adapter 强度",
+    "ipAdapterScaleLow": "弱",
+    "ipAdapterScaleHigh": "强"
 }
