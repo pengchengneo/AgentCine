@@ -44,6 +44,7 @@ export function usePipelineStatus(projectId: string, enabled: boolean) {
       if (!data?.exists) return false
       const status = data.status
       if (status === 'completed' || status === 'failed') return false
+      if (status === 'paused') return 10000
       return 3000
     },
     enabled,
