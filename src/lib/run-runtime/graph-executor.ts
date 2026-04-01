@@ -1,4 +1,5 @@
 import { normalizeAnyError } from '@/lib/errors/normalize'
+import { prisma } from '@/lib/prisma'
 import { buildLeanState, createCheckpoint, createSubStepEvent, getRunById } from './service'
 import type { StateRef } from './types'
 
@@ -48,6 +49,13 @@ export class GraphCancellationError extends Error {
   }
 }
 
+export class PipelinePausedError extends Error {
+  constructor(message = 'pipeline paused by user') {
+    super(message)
+    this.name = 'PipelinePausedError'
+  }
+}
+
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -87,6 +95,17 @@ async function assertRunActive(runId: string, userId: string) {
   }
   if (run.status === 'canceling' || run.status === 'canceled') {
     throw new GraphCancellationError('run canceled')
+  }
+
+  // Check if the associated PipelineRun has been paused
+  if (run.targetType === 'PipelineRun' && run.targetId) {
+    const pipelineRun = await prisma.pipelineRun.findUnique({
+      where: { id: run.targetId },
+      select: { status: true },
+    })
+    if (pipelineRun?.status === 'paused') {
+      throw new PipelinePausedError()
+    }
   }
 }
 
@@ -164,6 +183,9 @@ export async function executePipelineGraph<TState extends GraphExecutorState>(
         break
       } catch (error) {
         if (error instanceof GraphCancellationError) {
+          throw error
+        }
+        if (error instanceof PipelinePausedError) {
           throw error
         }
 
