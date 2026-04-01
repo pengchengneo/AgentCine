@@ -6,6 +6,14 @@ export type TokenUsage = {
   totalTokens: number
 }
 
+export type SubStepInfo = {
+  key: string
+  title: string
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  startedAt: string | null
+  completedAt: string | null
+}
+
 export type StepInfo = {
   stepKey: string
   stepTitle: string
@@ -15,6 +23,7 @@ export type StepInfo = {
   finishedAt: string | null
   lastErrorMessage: string | null
   usage: TokenUsage
+  subSteps: SubStepInfo[]
 }
 
 export type ActiveTaskInfo = {

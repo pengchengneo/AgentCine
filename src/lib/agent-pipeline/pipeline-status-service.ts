@@ -3,7 +3,8 @@
 import { prisma } from '@/lib/prisma'
 import { getReviewSummary } from './review/review-service'
 import type { ReviewSummary } from './review/types'
-import type { TokenUsage, StepInfo, ActiveTaskInfo, PipelineLogEntry } from './pipeline-types'
+import { getAgentByStepKey } from './agent-identities'
+import type { TokenUsage, StepInfo, SubStepInfo, ActiveTaskInfo, PipelineLogEntry } from './pipeline-types'
 
 export type PipelineStatusDetail = {
   exists: true
@@ -35,6 +36,48 @@ function sumUsageFromJson(usageJson: unknown): TokenUsage {
   return { promptTokens: prompt, completionTokens: completion, totalTokens: prompt + completion }
 }
 
+function buildSubSteps(
+  stepKey: string,
+  events: Array<{ eventType: string; payload: unknown; createdAt: Date }>,
+): SubStepInfo[] {
+  const identity = getAgentByStepKey(stepKey)
+  if (!identity) return []
+
+  const subStepStates = new Map<string, { status: SubStepInfo['status']; startedAt: Date | null; completedAt: Date | null }>()
+
+  for (const event of events) {
+    const payload = event.payload as Record<string, unknown> | null
+    const subStepKey = payload?.subStepKey as string | undefined
+    if (!subStepKey) continue
+
+    const existing = subStepStates.get(subStepKey) || { status: 'pending' as const, startedAt: null, completedAt: null }
+
+    if (event.eventType === 'substep.start') {
+      existing.status = 'running'
+      existing.startedAt = event.createdAt
+    } else if (event.eventType === 'substep.complete') {
+      existing.status = 'completed'
+      existing.completedAt = event.createdAt
+    } else if (event.eventType === 'substep.error') {
+      existing.status = 'failed'
+      existing.completedAt = event.createdAt
+    }
+
+    subStepStates.set(subStepKey, existing)
+  }
+
+  return identity.subSteps.map((def) => {
+    const state = subStepStates.get(def.key)
+    return {
+      key: def.key,
+      title: def.titleFallback,
+      status: state?.status ?? 'pending',
+      startedAt: state?.startedAt?.toISOString() ?? null,
+      completedAt: state?.completedAt?.toISOString() ?? null,
+    }
+  })
+}
+
 export async function getPipelineRunDetail(projectId: string): Promise<PipelineStatusResponse> {
   const pipelineRun = await prisma.pipelineRun.findFirst({
     where: { projectId },
@@ -55,7 +98,7 @@ export async function getPipelineRunDetail(projectId: string): Promise<PipelineS
   })
 
   // Parallelize independent queries
-  const [graphSteps, activeTasks, reviewSummary] = await Promise.all([
+  const [graphSteps, activeTasks, reviewSummary, subStepEvents] = await Promise.all([
     graphRun
       ? prisma.graphStep.findMany({
           where: { runId: graphRun.id },
@@ -83,6 +126,15 @@ export async function getPipelineRunDetail(projectId: string): Promise<PipelineS
       },
     }),
     getReviewSummary(pipelineRun.id),
+    graphRun
+      ? prisma.graphEvent.findMany({
+          where: {
+            runId: graphRun.id,
+            eventType: { startsWith: 'substep.' },
+          },
+          orderBy: { createdAt: 'asc' },
+        })
+      : Promise.resolve([]),
   ])
 
   const totalUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
@@ -98,6 +150,8 @@ export async function getPipelineRunDetail(projectId: string): Promise<PipelineS
     totalUsage.completionTokens += stepUsage.completionTokens
     totalUsage.totalTokens += stepUsage.totalTokens
 
+    const stepSubEvents = subStepEvents.filter((e) => e.stepKey === s.stepKey)
+
     return {
       stepKey: s.stepKey,
       stepTitle: s.stepTitle,
@@ -107,6 +161,7 @@ export async function getPipelineRunDetail(projectId: string): Promise<PipelineS
       finishedAt: s.finishedAt?.toISOString() ?? null,
       lastErrorMessage: s.lastErrorMessage,
       usage: stepUsage,
+      subSteps: buildSubSteps(s.stepKey, stepSubEvents),
     }
   })
 
