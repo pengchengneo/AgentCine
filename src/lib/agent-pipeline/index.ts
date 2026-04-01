@@ -136,3 +136,179 @@ export async function startPipeline(params: {
 
   return { pipelineRunId: pipelineRun.id, runId: graphRun.id }
 }
+
+export async function resumePipeline(params: {
+  userId: string
+  projectId: string
+  pipelineRunId: string
+}): Promise<{ resumed: boolean }> {
+  const logger = createScopedLogger({
+    module: 'agent-pipeline',
+    projectId: params.projectId,
+    userId: params.userId,
+  })
+
+  const pipelineRun = await prisma.pipelineRun.findUnique({
+    where: { id: params.pipelineRunId },
+  })
+  if (!pipelineRun || pipelineRun.status !== PIPELINE_STATUS.PAUSED) {
+    throw new Error('Pipeline is not paused')
+  }
+
+  // Find the GraphRun
+  const graphRun = await prisma.graphRun.findFirst({
+    where: {
+      targetType: 'PipelineRun',
+      targetId: params.pipelineRunId,
+    },
+  })
+  if (!graphRun) {
+    throw new Error('GraphRun not found for pipeline')
+  }
+
+  // Get completed step keys
+  const completedSteps = await prisma.graphStep.findMany({
+    where: {
+      runId: graphRun.id,
+      status: 'completed',
+    },
+    select: { stepKey: true },
+    orderBy: { stepIndex: 'asc' },
+  })
+  const completedNodes = completedSteps.map((s) => s.stepKey)
+
+  // Get latest checkpoint state
+  const checkpoints = await prisma.graphCheckpoint.findMany({
+    where: { runId: graphRun.id },
+    orderBy: { createdAt: 'desc' },
+    take: 1,
+  })
+
+  // Build checkpoint state
+  let checkpointState: Record<string, unknown> = {}
+  if (checkpoints.length > 0 && checkpoints[0].stateJson) {
+    const saved = checkpoints[0].stateJson as Record<string, unknown>
+    const novelData = await prisma.novelPromotionProject.findUnique({
+      where: { projectId: params.projectId },
+      select: { artStyle: true, videoRatio: true },
+    })
+
+    const config = (pipelineRun.config as PipelineConfig) || DEFAULT_PIPELINE_CONFIG
+
+    checkpointState = {
+      refs: saved.refs || {},
+      meta: saved.meta || {},
+      projectId: params.projectId,
+      userId: params.userId,
+      pipelineRunId: params.pipelineRunId,
+      script: '',
+      artStyle: novelData?.artStyle || '',
+      aspectRatio: novelData?.videoRatio || '9:16',
+      config,
+      characters: [],
+      locations: [],
+      episodeIds: [],
+      styleProfile: null,
+      characterAssetsLocked: completedNodes.includes('art_director_agent'),
+      locationAssetsLocked: completedNodes.includes('art_director_agent'),
+      storyboardComplete: completedNodes.includes('storyboard_agent'),
+      panelCount: 0,
+      currentPhase: pipelineRun.currentPhase || 'script',
+      qualityGates: [],
+      error: null,
+    }
+  }
+
+  // Update statuses
+  await prisma.pipelineRun.update({
+    where: { id: params.pipelineRunId },
+    data: { status: PIPELINE_STATUS.RUNNING },
+  })
+  await prisma.graphRun.updateMany({
+    where: { id: graphRun.id },
+    data: { status: 'running' },
+  })
+
+  // Reset any failed/running steps that will be re-run
+  await prisma.graphStep.updateMany({
+    where: {
+      runId: graphRun.id,
+      status: { in: ['running', 'failed'] },
+    },
+    data: {
+      status: 'pending',
+      finishedAt: null,
+      lastErrorCode: null,
+      lastErrorMessage: null,
+    },
+  })
+
+  const novelData = await prisma.novelPromotionProject.findUnique({
+    where: { projectId: params.projectId },
+    select: { artStyle: true, videoRatio: true },
+  })
+
+  logger.info({
+    action: 'pipeline.resume',
+    message: `Resuming pipeline from after: ${completedNodes.join(', ') || 'beginning'}`,
+  })
+
+  // Run pipeline in background with resume context
+  runAgentPipelineGraph({
+    runId: graphRun.id,
+    projectId: params.projectId,
+    userId: params.userId,
+    pipelineRunId: params.pipelineRunId,
+    script: '',
+    artStyle: novelData?.artStyle || '',
+    aspectRatio: novelData?.videoRatio || '9:16',
+    config: (pipelineRun.config as PipelineConfig) || DEFAULT_PIPELINE_CONFIG,
+    resumeFrom: {
+      completedNodes,
+      checkpointState,
+    },
+  })
+    .then(async () => {
+      const current = await prisma.pipelineRun.findUnique({
+        where: { id: params.pipelineRunId },
+        select: { status: true },
+      })
+      if (current && current.status === PIPELINE_STATUS.RUNNING) {
+        await prisma.pipelineRun.update({
+          where: { id: params.pipelineRunId },
+          data: {
+            status: PIPELINE_STATUS.REVIEW,
+            completedAt: new Date(),
+          },
+        })
+      }
+    })
+    .catch(async (error: unknown) => {
+      if (error instanceof PipelinePausedError) {
+        await prisma.graphRun.updateMany({
+          where: { id: graphRun.id, status: { in: ['running', 'queued'] } },
+          data: { status: 'paused' },
+        })
+        logger.info({ action: 'pipeline.paused', message: 'Pipeline paused again' })
+        return
+      }
+
+      const message = error instanceof Error ? error.message : String(error)
+      await prisma.pipelineRun.update({
+        where: { id: params.pipelineRunId },
+        data: {
+          status: PIPELINE_STATUS.FAILED,
+          errorMessage: message,
+          completedAt: new Date(),
+        },
+      })
+      logger.error({
+        action: 'pipeline.failed',
+        message,
+        errorCode: 'PIPELINE_FAILED',
+        retryable: false,
+      })
+    })
+
+  return { resumed: true }
+}

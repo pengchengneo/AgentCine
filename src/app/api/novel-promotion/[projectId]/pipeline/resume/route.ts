@@ -3,6 +3,7 @@ import { requireProjectAuth, isErrorResponse } from '@/lib/api-auth'
 import { apiHandler, ApiError } from '@/lib/api-errors'
 import { prisma } from '@/lib/prisma'
 import { PIPELINE_STATUS } from '@/lib/agent-pipeline/types'
+import { resumePipeline } from '@/lib/agent-pipeline'
 
 export const POST = apiHandler(async (
   _request: NextRequest,
@@ -12,6 +13,7 @@ export const POST = apiHandler(async (
 
   const authResult = await requireProjectAuth(projectId)
   if (isErrorResponse(authResult)) return authResult
+  const { session } = authResult
 
   const pipelineRun = await prisma.pipelineRun.findFirst({
     where: { projectId },
@@ -26,10 +28,11 @@ export const POST = apiHandler(async (
     throw new ApiError('INVALID_PARAMS', { message: 'Pipeline is not paused' })
   }
 
-  await prisma.pipelineRun.update({
-    where: { id: pipelineRun.id },
-    data: { status: PIPELINE_STATUS.RUNNING },
+  const result = await resumePipeline({
+    userId: session.user.id,
+    projectId,
+    pipelineRunId: pipelineRun.id,
   })
 
-  return Response.json({ success: true })
+  return Response.json(result)
 })
