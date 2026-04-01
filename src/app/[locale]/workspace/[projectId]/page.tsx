@@ -371,7 +371,7 @@ export default function ProjectDetailPage() {
   }
 
   return (
-    <AppShell noWarmDecor noBokeh>
+    <AppShell noWarmDecor noBokeh hideSideNav>
 
       {/* V3 UI: 浮动导航替代了旧的 Sidebar */}
 

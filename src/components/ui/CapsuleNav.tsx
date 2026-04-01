@@ -183,6 +183,7 @@ interface EpisodeSelectorProps {
     onRename?: (id: string, newName: string) => void
     onDelete?: (id: string) => void
     projectName?: string  // 项目名称，显示在左上角
+    inline?: boolean      // 内联模式，不使用 fixed 定位
 }
 
 export function EpisodeSelector({
@@ -192,7 +193,8 @@ export function EpisodeSelector({
     onAdd,
     onRename,
     onDelete,
-    projectName
+    projectName,
+    inline,
 }: EpisodeSelectorProps) {
     const t = useTranslations('common')
     const [isOpen, setIsOpen] = useState(false)
@@ -215,7 +217,7 @@ export function EpisodeSelector({
     if (!currentEp) return null
 
     return (
-        <div className="fixed top-4 left-6 z-[60]" ref={menuRef}>
+        <div className={inline ? 'relative' : 'fixed top-4 left-6 z-[60]'} ref={menuRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="glass-btn-base glass-btn-secondary flex items-center gap-3 px-4 py-3 transition-all group"
