@@ -65,16 +65,6 @@ function AgentNodeInner({ data }: { data: AgentNodeData }) {
 
   return (
     <>
-      <style>{`
-        .animate-pulse-subtle {
-          animation: pulse-subtle 2s ease-in-out infinite;
-        }
-        @keyframes pulse-subtle {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.02); }
-        }
-      `}</style>
-
       {!isFirst && (
         <Handle
           type="target"

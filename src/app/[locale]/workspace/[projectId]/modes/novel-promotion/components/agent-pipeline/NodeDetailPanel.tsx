@@ -32,6 +32,16 @@ type Props = {
 
 const REVIEW_PHASES = new Set(['art_director_agent', 'storyboard_agent'])
 
+const STEP_KEY_TO_LOG_AGENT: Record<string, string[]> = {
+  script_agent: ['剧本', 'script'],
+  art_director_agent: ['美术', 'art_director', 'ArtDirector'],
+  storyboard_agent: ['分镜', 'storyboard'],
+  producer_quality_check: ['制片', 'producer', 'quality'],
+  video_generation_agent: ['视频', 'video'],
+  voice_generation_agent: ['配音', 'voice'],
+  assembly_agent: ['成片', 'assembly'],
+}
+
 function StatusBadge({ status, t }: { status: string; t: ReturnType<typeof useTranslations> }) {
   const label =
     status === 'running'
@@ -116,13 +126,9 @@ export function NodeDetailPanel({ stepKey, projectId, step, activeTask, logs, on
   if (!stepKey || !agent) return null
 
   // Filter logs for this agent's phase
+  const agentPatterns = STEP_KEY_TO_LOG_AGENT[stepKey ?? ''] || []
   const filteredLogs = logs?.filter((log) => {
-    const msg = log.agent.toLowerCase() + ' ' + log.message.toLowerCase()
-    return (
-      msg.includes(agent.phaseKey) ||
-      msg.includes(agent.stepKey.replace(/_/g, '')) ||
-      log.agent.toLowerCase().includes(agent.phaseKey)
-    )
+    return agentPatterns.some((pattern) => log.agent.includes(pattern))
   })
 
   // Compute duration

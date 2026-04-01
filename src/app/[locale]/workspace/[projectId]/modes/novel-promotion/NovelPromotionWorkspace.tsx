@@ -37,7 +37,7 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
   const { data: pipelineData } = usePipelineStatus(props.projectId, isAgentMode)
   const pipelineActive = pipelineData?.exists === true &&
     (pipelineData.status === 'running' || pipelineData.status === 'paused' || pipelineData.status === 'review')
-  const hasCompletedOnce = pipelineData?.status === 'completed'
+  const hasCompletedOnce = pipelineData?.status === 'completed' || pipelineData?.status === 'failed'
 
   const {
     project,
