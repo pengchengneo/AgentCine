@@ -1,5 +1,14 @@
 import type { AppIconName } from '@/components/ui/icons/registry'
 
+export type AgentSubStep = {
+  /** Unique key within the agent */
+  key: string
+  /** i18n key under 'pipeline' namespace */
+  titleKey: string
+  /** Fallback title (Chinese) */
+  titleFallback: string
+}
+
 export type AgentIdentity = {
   /** Pipeline step key matching StepInfo.stepKey */
   stepKey: string
@@ -15,6 +24,8 @@ export type AgentIdentity = {
   nameKey: string
   /** i18n key for agent role description */
   roleKey: string
+  /** Ordered list of sub-steps for this agent */
+  subSteps: AgentSubStep[]
 }
 
 export const AGENT_IDENTITIES: AgentIdentity[] = [
@@ -26,6 +37,11 @@ export const AGENT_IDENTITIES: AgentIdentity[] = [
     accentColor: 'text-violet-400',
     nameKey: 'agentScript',
     roleKey: 'agentRoleScript',
+    subSteps: [
+      { key: 'analyze_novel', titleKey: 'subStepAnalyzeNovel', titleFallback: '分析小说文本' },
+      { key: 'extract_characters', titleKey: 'subStepExtractCharacters', titleFallback: '提取角色与场景' },
+      { key: 'generate_scripts', titleKey: 'subStepGenerateScripts', titleFallback: '生成分集剧本' },
+    ],
   },
   {
     stepKey: 'art_director_agent',
@@ -35,6 +51,11 @@ export const AGENT_IDENTITIES: AgentIdentity[] = [
     accentColor: 'text-amber-400',
     nameKey: 'agentArt',
     roleKey: 'agentRoleArt',
+    subSteps: [
+      { key: 'create_style_profile', titleKey: 'subStepCreateStyleProfile', titleFallback: '创建风格档案' },
+      { key: 'generate_characters', titleKey: 'subStepGenerateCharacters', titleFallback: '生成角色立绘' },
+      { key: 'generate_locations', titleKey: 'subStepGenerateLocations', titleFallback: '生成场景图' },
+    ],
   },
   {
     stepKey: 'storyboard_agent',
@@ -44,6 +65,10 @@ export const AGENT_IDENTITIES: AgentIdentity[] = [
     accentColor: 'text-cyan-400',
     nameKey: 'agentStoryboard',
     roleKey: 'agentRoleStoryboard',
+    subSteps: [
+      { key: 'generate_storyboard_scripts', titleKey: 'subStepGenerateStoryboardScripts', titleFallback: '生成分镜脚本' },
+      { key: 'batch_generate_panels', titleKey: 'subStepBatchGeneratePanels', titleFallback: '批量生成分镜图' },
+    ],
   },
   {
     stepKey: 'producer_quality_check',
@@ -53,6 +78,11 @@ export const AGENT_IDENTITIES: AgentIdentity[] = [
     accentColor: 'text-emerald-400',
     nameKey: 'agentProducer',
     roleKey: 'agentRoleProducer',
+    subSteps: [
+      { key: 'create_review_items', titleKey: 'subStepCreateReviewItems', titleFallback: '创建审核项' },
+      { key: 'quality_scoring', titleKey: 'subStepQualityScoring', titleFallback: '质量评分' },
+      { key: 'generate_report', titleKey: 'subStepGenerateReport', titleFallback: '生成审核报告' },
+    ],
   },
   {
     stepKey: 'video_generation_agent',
@@ -62,6 +92,7 @@ export const AGENT_IDENTITIES: AgentIdentity[] = [
     accentColor: 'text-rose-400',
     nameKey: 'agentVideo',
     roleKey: 'agentRoleVideo',
+    subSteps: [],
   },
   {
     stepKey: 'voice_generation_agent',
@@ -71,6 +102,7 @@ export const AGENT_IDENTITIES: AgentIdentity[] = [
     accentColor: 'text-sky-400',
     nameKey: 'agentVoice',
     roleKey: 'agentRoleVoice',
+    subSteps: [],
   },
   {
     stepKey: 'assembly_agent',
@@ -80,6 +112,7 @@ export const AGENT_IDENTITIES: AgentIdentity[] = [
     accentColor: 'text-yellow-400',
     nameKey: 'agentAssembly',
     roleKey: 'agentRoleAssembly',
+    subSteps: [],
   },
 ]
 
