@@ -220,22 +220,17 @@ export function EpisodeSelector({
         <div className={inline ? 'relative' : 'fixed top-4 left-6 z-[60]'} ref={menuRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="glass-btn-base glass-btn-secondary flex items-center gap-3 px-4 py-3 transition-all group"
-                style={{ borderRadius: '1.5rem' }}
+                className="flex items-center gap-2 h-10 px-3.5 rounded-2xl text-sm font-medium bg-gradient-to-br from-orange-50/80 to-amber-50/60 border border-orange-200/50 text-orange-900/80 backdrop-blur-md shadow-sm hover:from-orange-100/90 hover:to-amber-100/70 hover:border-orange-300/60 hover:text-orange-900 transition-all"
             >
-                <div className="glass-surface-soft flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold text-[var(--glass-tone-info-fg)]">
-                    {t('episode')}
-                </div>
-                <div className="flex items-center gap-1.5 mr-2">
-                    <span className="text-sm font-bold text-[var(--glass-text-primary)] line-clamp-1 max-w-[160px]">
-                        {projectName || t('project')}
-                    </span>
-                    <span className="text-sm text-[var(--glass-text-tertiary)]">/</span>
-                    <span className="text-sm text-[var(--glass-text-secondary)] line-clamp-1 max-w-[160px]">
-                        {currentEp.title}
-                    </span>
-                </div>
-                <AppIcon name="chevronDown" className={`w-4 h-4 text-[var(--glass-text-tertiary)] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <AppIcon name="film" className="h-4 w-4 text-orange-600 shrink-0" />
+                <span className="font-bold line-clamp-1 max-w-[120px]">
+                    {projectName || t('project')}
+                </span>
+                <span className="text-orange-400">/</span>
+                <span className="line-clamp-1 max-w-[120px]">
+                    {currentEp.title}
+                </span>
+                <AppIcon name="chevronDown" className={`w-3.5 h-3.5 text-orange-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isOpen && (

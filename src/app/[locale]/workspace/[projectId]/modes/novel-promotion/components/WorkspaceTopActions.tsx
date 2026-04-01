@@ -8,6 +8,8 @@ import { AppIcon } from '@/components/ui/icons'
 import { useToast } from '@/contexts/ToastContext'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 
+const BTN = 'flex items-center gap-2 h-10 px-3.5 rounded-2xl text-sm font-medium bg-gradient-to-br from-orange-50/80 to-amber-50/60 border border-orange-200/50 text-orange-900/80 backdrop-blur-md shadow-sm hover:from-orange-100/90 hover:to-amber-100/70 hover:border-orange-300/60 hover:text-orange-900 transition-all'
+
 interface WorkspaceTopActionsProps {
   onOpenAssetLibrary: () => void
   onOpenSettings: () => void
@@ -35,10 +37,7 @@ export default function WorkspaceTopActions({
   const t = useTranslations('nav')
 
   const handleRefreshClick = useCallback(async () => {
-    if (isRefreshing) {
-      return
-    }
-
+    if (isRefreshing) return
     try {
       setIsRefreshing(true)
       await Promise.resolve(onRefresh())
@@ -57,11 +56,11 @@ export default function WorkspaceTopActions({
       <div className="flex items-center gap-2">
         <Link
           href={{ pathname: session ? '/workspace' : '/' }}
-          className="glass-btn-base glass-btn-secondary flex items-center gap-2 px-3 py-3 rounded-3xl text-[var(--glass-text-primary)] group"
+          className={`${BTN} group`}
         >
-          <AppIcon name="clapperboard" className="h-5 w-5 text-emerald-500 shrink-0 transition-transform group-hover:scale-110" />
-          <span className="font-bold text-sm tracking-tight">
-            Agent<span className="text-emerald-500">Cine</span>
+          <AppIcon name="clapperboard" className="h-4 w-4 text-orange-600 shrink-0 transition-transform group-hover:scale-110" />
+          <span className="font-bold tracking-tight">
+            Agent<span className="text-orange-600">Cine</span>
           </span>
         </Link>
 
@@ -69,58 +68,41 @@ export default function WorkspaceTopActions({
 
         {session && (
           <>
-            <Link
-              href={{ pathname: '/workspace' }}
-              className="glass-btn-base glass-btn-secondary flex items-center gap-2 px-3 py-3 rounded-3xl text-[var(--glass-text-secondary)] hover:text-[var(--glass-text-primary)]"
-            >
+            <Link href={{ pathname: '/workspace' }} className={BTN}>
               <AppIcon name="monitor" className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('workspace')}</span>
+              <span>{t('workspace')}</span>
             </Link>
-            <Link
-              href={{ pathname: '/workspace/asset-hub' }}
-              className="glass-btn-base glass-btn-secondary flex items-center gap-2 px-3 py-3 rounded-3xl text-[var(--glass-text-secondary)] hover:text-[var(--glass-text-primary)]"
-            >
+            <Link href={{ pathname: '/workspace/asset-hub' }} className={BTN}>
               <AppIcon name="folderHeart" className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('assetHub')}</span>
+              <span>{t('assetHub')}</span>
             </Link>
-            <Link
-              href={{ pathname: '/profile' }}
-              className="glass-btn-base glass-btn-secondary flex items-center gap-2 px-3 py-3 rounded-3xl text-[var(--glass-text-secondary)] hover:text-[var(--glass-text-primary)]"
-            >
+            <Link href={{ pathname: '/profile' }} className={BTN}>
               <AppIcon name="userRoundCog" className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('profile')}</span>
+              <span>{t('profile')}</span>
             </Link>
-            <LanguageSwitcher />
+            <LanguageSwitcher className={BTN} />
           </>
         )}
       </div>
 
       {/* Right: Mode toggle + Asset Library + Settings + Refresh */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         {headerSlot}
-        <button
-          onClick={onOpenAssetLibrary}
-          className="glass-btn-base glass-btn-secondary flex items-center gap-2 px-4 py-3 rounded-3xl text-[var(--glass-text-primary)]"
-        >
-          <AppIcon name="package" className="h-5 w-5" />
-          <span className="font-semibold text-sm hidden md:inline tracking-[0.01em]">{assetLibraryLabel}</span>
+        <button onClick={onOpenAssetLibrary} className={BTN}>
+          <AppIcon name="package" className="h-4 w-4" />
+          <span className="hidden md:inline">{assetLibraryLabel}</span>
         </button>
-        <button
-          onClick={onOpenSettings}
-          className="glass-btn-base glass-btn-secondary flex items-center gap-2 px-4 py-3 rounded-3xl text-[var(--glass-text-primary)]"
-        >
-          <AppIcon name="settingsHexMinor" className="h-5 w-5" />
-          <span className="font-semibold text-sm hidden md:inline tracking-[0.01em]">{settingsLabel}</span>
+        <button onClick={onOpenSettings} className={BTN}>
+          <AppIcon name="settingsHexMinor" className="h-4 w-4" />
+          <span className="hidden md:inline">{settingsLabel}</span>
         </button>
         <button
           onClick={handleRefreshClick}
-          className={`glass-btn-base glass-btn-secondary flex items-center gap-2 px-4 py-3 rounded-3xl text-[var(--glass-text-primary)] ${
-            isRefreshing ? 'opacity-60 cursor-wait' : ''
-          }`}
+          className={`${BTN} ${isRefreshing ? 'opacity-60 cursor-wait' : ''}`}
           title={refreshTitle}
           disabled={isRefreshing}
         >
-          <AppIcon name="refresh" className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <AppIcon name="refresh" className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
         </button>
       </div>
     </div>
