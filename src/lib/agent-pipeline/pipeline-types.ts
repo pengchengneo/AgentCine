@@ -41,3 +41,10 @@ export type PipelineLogEntry = {
   model?: string
   detail?: string
 }
+
+export type ResumeContext = {
+  /** Keys of nodes that completed before the pause */
+  completedNodes: string[]
+  /** Serialized PipelineState from the last checkpoint */
+  checkpointState: Record<string, unknown>
+}
