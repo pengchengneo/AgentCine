@@ -24,6 +24,7 @@ export async function runStoryboardAgent(
 
   logger.info({ action: 'storyboard_agent.start', message: 'Starting storyboard generation' })
   await log('开始分镜生成')
+  await context.emitSubStep('generate_storyboard_scripts', 'running')
 
   // Step 1: Run script-to-storyboard for each episode
   for (let i = 0; i < state.episodeIds.length; i++) {
@@ -43,6 +44,8 @@ export async function runStoryboardAgent(
     })
     await waitForTaskCompletion(storyboardResult.taskId, state.projectId)
   }
+  await context.emitSubStep('generate_storyboard_scripts', 'completed')
+  await context.emitSubStep('batch_generate_panels', 'running')
 
   // Step 2: Batch generate panel images
   const novelData = await prisma.novelPromotionProject.findUnique({
@@ -90,6 +93,7 @@ export async function runStoryboardAgent(
   state.currentPhase = 'review'
 
   await log(`分镜生成完成，共 ${panels.length} 个画面`)
+  await context.emitSubStep('batch_generate_panels', 'completed')
   logger.info({
     action: 'storyboard_agent.complete',
     message: `Generated storyboards and ${panels.length} panel images`,

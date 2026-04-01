@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { AppIcon } from '@/components/ui/icons'
 import { AgentCard } from './AgentCard'
 import { getAgentByStepKey } from '@/lib/agent-pipeline/agent-identities'
-import type { StepInfo, ActiveTaskInfo, PipelineLogEntry } from '../../hooks/usePipelineStatus'
+import type { StepInfo, ActiveTaskInfo, PipelineLogEntry, SubStepInfo } from '../../hooks/usePipelineStatus'
 import { TASK_TYPE_KEYS } from './constants'
 
 const fmt = new Intl.NumberFormat()
@@ -26,6 +26,49 @@ type Props = {
   isLast?: boolean
   activeTask?: ActiveTaskInfo | null
   logs?: PipelineLogEntry[]
+}
+
+function SubStepStatusIcon({ status }: { status: SubStepInfo['status'] }) {
+  switch (status) {
+    case 'running':
+      return <AppIcon name="loader" className="h-3 w-3 text-blue-400 animate-spin shrink-0" />
+    case 'completed':
+      return <AppIcon name="checkCircle" className="h-3 w-3 text-emerald-400 shrink-0" />
+    case 'failed':
+      return <AppIcon name="alertCircle" className="h-3 w-3 text-red-400 shrink-0" />
+    default:
+      return <div className="h-3 w-3 rounded-full border border-(--glass-stroke-base) shrink-0" />
+  }
+}
+
+function SubStepList({ subSteps }: { subSteps: SubStepInfo[] }) {
+  if (subSteps.length === 0) return null
+
+  return (
+    <div className="pt-2 space-y-1 px-1">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-(--glass-text-tertiary) mb-1">
+        Steps
+      </div>
+      <div className="space-y-0.5">
+        {subSteps.map((sub) => (
+          <div key={sub.key} className="flex items-center gap-2 py-0.5">
+            <SubStepStatusIcon status={sub.status} />
+            <span className={`text-xs ${
+              sub.status === 'pending'
+                ? 'text-(--glass-text-tertiary)'
+                : sub.status === 'running'
+                  ? 'text-(--glass-text-primary)'
+                  : sub.status === 'completed'
+                    ? 'text-(--glass-text-secondary)'
+                    : 'text-red-300'
+            }`}>
+              {sub.title}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export function ExpandableStepCard({ step, isLast, activeTask, logs }: Props) {
@@ -149,6 +192,11 @@ export function ExpandableStepCard({ step, isLast, activeTask, logs }: Props) {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Sub-step progress */}
+            {step.subSteps && step.subSteps.length > 0 && (
+              <SubStepList subSteps={step.subSteps} />
             )}
 
             {/* Stats grid — for completed/failed steps */}

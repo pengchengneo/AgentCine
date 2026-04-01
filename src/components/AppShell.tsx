@@ -12,16 +12,18 @@ interface AppShellProps {
   noWarmDecor?: boolean
   /** Skip bokeh orbs */
   noBokeh?: boolean
+  /** Hide the left SideNav and remove left padding */
+  hideSideNav?: boolean
 }
 
-export default function AppShell({ children, noWarmDecor, noBokeh }: AppShellProps) {
+export default function AppShell({ children, noWarmDecor, noBokeh, hideSideNav }: AppShellProps) {
   const tc = useTranslations('common')
   const { currentVersion, update, shouldPulse, showModal, openModal, dismissCurrentUpdate } = useGithubReleaseUpdate()
 
   return (
     <div className="glass-page min-h-screen overflow-x-hidden cinema-vignette cinema-grain">
       {/* Side Navigation */}
-      <SideNav />
+      {!hideSideNav && <SideNav />}
 
       {/* Background Decor */}
       {!noWarmDecor && <div className="cinema-bg-warm-decor" />}
@@ -54,7 +56,7 @@ export default function AppShell({ children, noWarmDecor, noBokeh }: AppShellPro
       </div>
 
       {/* Main Content */}
-      <main className="relative z-10 pl-20">
+      <main className={`relative z-10 ${hideSideNav ? '' : 'pl-20'}`}>
         {children}
       </main>
 

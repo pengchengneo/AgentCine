@@ -16,6 +16,8 @@
   "agentMode": "Agent 模式",
   "manualMode": "手动模式",
   "startPipeline": "启动 Pipeline",
+  "retryPipeline": "重试 Pipeline",
+  "retryHint": "从失败位置继续执行",
   "cancelPipeline": "取消",
   "workflow": "工作流",
   "currentActivity": "当前任务",

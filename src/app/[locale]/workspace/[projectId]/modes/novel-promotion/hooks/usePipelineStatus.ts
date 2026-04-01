@@ -2,9 +2,9 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query/keys'
-import type { TokenUsage, StepInfo, ActiveTaskInfo, PipelineLogEntry } from '@/lib/agent-pipeline/pipeline-types'
+import type { TokenUsage, StepInfo, SubStepInfo, ActiveTaskInfo, PipelineLogEntry } from '@/lib/agent-pipeline/pipeline-types'
 
-export type { TokenUsage, StepInfo, ActiveTaskInfo, PipelineLogEntry }
+export type { TokenUsage, StepInfo, SubStepInfo, ActiveTaskInfo, PipelineLogEntry }
 
 export type ReviewSummary = {
   total: number
@@ -44,6 +44,7 @@ export function usePipelineStatus(projectId: string, enabled: boolean) {
       if (!data?.exists) return false
       const status = data.status
       if (status === 'completed' || status === 'failed') return false
+      if (status === 'paused') return 10000
       return 3000
     },
     enabled,

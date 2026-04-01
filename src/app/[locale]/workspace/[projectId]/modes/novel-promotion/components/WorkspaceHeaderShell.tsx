@@ -159,34 +159,6 @@ export default function WorkspaceHeaderShell({
         text={globalAssetText}
         onChange={(value) => { onUpdateConfig('globalAssetText', value) }}
       />
-      {episodes.length > 0 && currentEpisodeId && (() => {
-        const getNum = (name: string) => { const m = name.match(/\d+/); return m ? parseInt(m[0], 10) : Infinity }
-        const sorted = [...episodes].sort((a, b) => {
-          const d = getNum(a.name) - getNum(b.name)
-          return d !== 0 ? d : a.name.localeCompare(b.name, 'zh')
-        })
-        return (
-          <EpisodeSelector
-            projectName={projectName}
-            episodes={sorted.map((ep) => ({
-              id: ep.id,
-              title: ep.name,
-              summary: ep.description ?? undefined,
-              status: {
-                script: ep.clips?.length ? 'ready' as const : 'empty' as const,
-                visual: ep.storyboards?.some((sb) => sb.panels?.some((panel) => panel.videoUrl)) ? 'ready' as const : 'empty' as const,
-              },
-            }))}
-            currentId={currentEpisodeId}
-            onSelect={(id) => onEpisodeSelect?.(id)}
-            onAdd={onEpisodeCreate}
-            onRename={(id, newName) => onEpisodeRename?.(id, newName)}
-            onDelete={onEpisodeDelete}
-          />
-        )
-      })()}
-
-
 
       {!hideCapsuleNav && (
         <CapsuleNav
@@ -206,6 +178,33 @@ export default function WorkspaceHeaderShell({
         settingsLabel={settingsLabel}
         refreshTitle={refreshTitle}
         headerSlot={headerSlot}
+        episodeSlot={episodes.length > 0 && currentEpisodeId ? (() => {
+          const getNum = (name: string) => { const m = name.match(/\d+/); return m ? parseInt(m[0], 10) : Infinity }
+          const sorted = [...episodes].sort((a, b) => {
+            const d = getNum(a.name) - getNum(b.name)
+            return d !== 0 ? d : a.name.localeCompare(b.name, 'zh')
+          })
+          return (
+            <EpisodeSelector
+              projectName={projectName}
+              episodes={sorted.map((ep) => ({
+                id: ep.id,
+                title: ep.name,
+                summary: ep.description ?? undefined,
+                status: {
+                  script: ep.clips?.length ? 'ready' as const : 'empty' as const,
+                  visual: ep.storyboards?.some((sb) => sb.panels?.some((panel) => panel.videoUrl)) ? 'ready' as const : 'empty' as const,
+                },
+              }))}
+              currentId={currentEpisodeId}
+              onSelect={(id) => onEpisodeSelect?.(id)}
+              onAdd={onEpisodeCreate}
+              onRename={(id, newName) => onEpisodeRename?.(id, newName)}
+              onDelete={onEpisodeDelete}
+              inline
+            />
+          )
+        })() : undefined}
       />
     </>
   )

@@ -1,5 +1,6 @@
 import { normalizeAnyError } from '@/lib/errors/normalize'
-import { buildLeanState, createCheckpoint, getRunById } from './service'
+import { prisma } from '@/lib/prisma'
+import { buildLeanState, createCheckpoint, createSubStepEvent, getRunById } from './service'
 import type { StateRef } from './types'
 
 type JsonRecord = Record<string, unknown>
@@ -16,6 +17,7 @@ export type GraphNodeContext<TState extends GraphExecutorState> = {
   nodeKey: string
   attempt: number
   state: TState
+  emitSubStep: (subStepKey: string, status: 'running' | 'completed' | 'failed') => Promise<void>
 }
 
 export type GraphNodeResult = {
@@ -44,6 +46,13 @@ export class GraphCancellationError extends Error {
   constructor(message = 'run canceled') {
     super(message)
     this.name = 'GraphCancellationError'
+  }
+}
+
+export class PipelinePausedError extends Error {
+  constructor(message = 'pipeline paused by user') {
+    super(message)
+    this.name = 'PipelinePausedError'
   }
 }
 
@@ -87,6 +96,17 @@ async function assertRunActive(runId: string, userId: string) {
   if (run.status === 'canceling' || run.status === 'canceled') {
     throw new GraphCancellationError('run canceled')
   }
+
+  // Check if the associated PipelineRun has been paused
+  if (run.targetType === 'PipelineRun' && run.targetId) {
+    const pipelineRun = await prisma.pipelineRun.findUnique({
+      where: { id: run.targetId },
+      select: { status: true },
+    })
+    if (pipelineRun?.status === 'paused') {
+      throw new PipelinePausedError()
+    }
+  }
 }
 
 function mergeRefs(base: StateRef, next: StateRef | undefined): StateRef {
@@ -123,6 +143,20 @@ export async function executePipelineGraph<TState extends GraphExecutorState>(
             nodeKey: node.key,
             attempt,
             state,
+            emitSubStep: async (subStepKey: string, status: 'running' | 'completed' | 'failed') => {
+              try {
+                await createSubStepEvent({
+                  runId,
+                  projectId,
+                  userId,
+                  stepKey: node.key,
+                  subStepKey,
+                  status,
+                })
+              } catch {
+                // Sub-step events are observational — don't fail the pipeline
+              }
+            },
           }),
           node.timeoutMs || 0,
         )
@@ -153,6 +187,9 @@ export async function executePipelineGraph<TState extends GraphExecutorState>(
         break
       } catch (error) {
         if (error instanceof GraphCancellationError) {
+          throw error
+        }
+        if (error instanceof PipelinePausedError) {
           throw error
         }
 

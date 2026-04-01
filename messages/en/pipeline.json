@@ -16,6 +16,8 @@
   "agentMode": "Agent Mode",
   "manualMode": "Manual Mode",
   "startPipeline": "Start Pipeline",
+  "retryPipeline": "Retry Pipeline",
+  "retryHint": "Resume from failure point",
   "cancelPipeline": "Cancel",
   "workflow": "Workflow",
   "currentActivity": "Current Task",
