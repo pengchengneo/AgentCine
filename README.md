@@ -200,6 +200,111 @@ npm run test:behavior:full
 
 ---
 
+## Agent 模式
+
+项目包含两套 Agent 系统，分别适用于不同场景。两者最终都通过 BullMQ 提交相同的任务（图片生成、文本分析等）来执行实际的 AI 工作。
+
+### 模式一：Agent Sessions（对话式，LLM 自主决策）
+
+> 入口：`POST /api/agent/sessions`｜代码：`src/lib/agent/`
+
+LLM 在每轮循环中自主观察项目状态、思考下一步行动并执行，支持人工在关键节点介入审批。
+
+```
+用户发起请求 → 创建 Session → 启动 Agent 循环
+                                    │
+                        ┌───────────┘
+                        ▼
+                    OBSERVE ── 查询数据库，获取当前项目状态
+                        │       （角色、场景、分镜、面板、任务进度等）
+                        ▼
+                     THINK ─── LLM 分析现状，决定下一步操作
+                        │       （使用 reasoning: high 模式）
+                        ▼
+                  CHECKPOINT? ─ 若命中审批节点，暂停等待用户批准/拒绝
+                        │       （通过 WebSocket + Redis pub/sub 通知前端）
+                        ▼
+                      ACT ──── 调用 Skill（封装的 BullMQ 任务），等待完成
+                        │       （submit-and-wait 或 fire-and-forget 两种模式）
+                        ▼
+                    REFLECT ── 记录决策到 EpisodicMemory，更新对话历史
+                        │
+                        └────→ 循环，直到 LLM 判定 done 或达到上限
+```
+
+**核心组件：**
+
+| 组件 | 路径 | 职责 |
+|------|------|------|
+| Agent 循环引擎 | `src/lib/agent/core/agent-loop.ts` | observe/think/act/reflect 主循环 |
+| DirectorAgent | `src/lib/agent/agents/director.ts` | 当前唯一实现的 Agent，统管全流程 |
+| Skills（工具） | `src/lib/agent/skills/` | 封装 BullMQ 任务为 Agent 可调用的工具 |
+| 行为控制 | `src/lib/agent/core/behavior-control.ts` | 审批策略、checkpoint 管理 |
+| 三层记忆 | `src/lib/agent/memory/` | ShortTerm（内存）+ LongTerm（Prisma）+ Episodic（Prisma） |
+| 事件总线 | `src/lib/agent/core/event-bus.ts` | Redis pub/sub，驱动实时通知 |
+| WebSocket 网关 | `src/lib/agent/gateway/` | 实时双向通信（思考、工具调用、checkpoint 等） |
+| 前端面板 | `src/components/agent/AgentChatPanel.tsx` | 浮动聊天面板，展示 Agent 状态与交互 |
+
+**可用 Skills：** 文本分析、剧本转换、角色/场景图片生成、分镜生成、面板图片生成、配音分析、语音生成、视频生成等。
+
+**终止条件：** LLM 声明完成 / 取消信号 / 达到循环上限（200次）/ 连续错误上限（5次）/ 总成本上限。
+
+### 模式二：Agent Pipeline（确定性，图执行）
+
+> 入口：`POST /api/novel-promotion/[projectId]/pipeline/start`｜代码：`src/lib/agent-pipeline/`
+
+固定顺序的四阶段流水线，无 LLM 路由决策。使用 LangGraph `StateGraph` 编排，内置重试与质量审查。
+
+```
+┌─────────────┐    ┌──────────────────┐    ┌────────────────┐    ┌──────────────────┐
+│ ScriptAgent  │───▶│ ArtDirectorAgent │───▶│ StoryboardAgent│───▶│ ProducerAgent    │
+│ 剧本 Agent   │    │ 美术总监          │    │ 分镜 Agent      │    │ 制片 Agent        │
+└─────────────┘    └──────────────────┘    └────────────────┘    └──────────────────┘
+  · 分析小说文本       · 生成角色图片           · 为每集生成分镜        · 创建审查项
+  · 提取角色/场景      · 生成场景图片           · 批量生成面板图片      · 自动评分
+  · 逐集剧本转换       · 锁定资产状态           · 更新完成状态         · 进入人工审核
+```
+
+**状态流转：**
+
+```
+queued → running → review → completed
+                 ↘ failed
+                 ↘ paused
+```
+
+**核心组件：**
+
+| 组件 | 路径 | 职责 |
+|------|------|------|
+| Pipeline 入口 | `src/lib/agent-pipeline/index.ts` | 启动流水线，预校验配置 |
+| 图定义 | `src/lib/agent-pipeline/graph/super-graph.ts` | 四节点线性图 |
+| 四个 Agent 节点 | `src/lib/agent-pipeline/graph/nodes/` | ScriptAgent / ArtDirector / Storyboard / Producer |
+| Pipeline 状态 | `src/lib/agent-pipeline/graph/state.ts` | 跨节点传递的状态对象 |
+| 图执行引擎 | `src/lib/run-runtime/graph-executor.ts` | 节点执行、超时、重试、取消 |
+| LangGraph 集成 | `src/lib/run-runtime/langgraph-pipeline.ts` | LangGraph StateGraph 封装 |
+| 任务等待 | `src/lib/agent-pipeline/graph/task-wait.ts` | DB 轮询（2s 间隔，15min 超时） |
+| 质量审查 | `src/lib/agent-pipeline/asset-layer/consistency-checker.ts` | 视觉模型一致性评分 |
+| 审查服务 | `src/lib/agent-pipeline/review-service.ts` | 审查项 CRUD、批准/拒绝 |
+| Pipeline 日志 | `src/lib/agent-pipeline/pipeline-log.ts` | 结构化日志（JSON 数组存储） |
+| 事件持久化 | `src/lib/run-runtime/service.ts` | GraphRun / GraphStep / GraphEvent 管理 |
+
+**质量审查流程：** ProducerAgent 完成后，pipeline 进入 `review` 状态。所有角色、场景、面板自动生成审查项。`strict` 模式下全部需要人工审核；`standard`/`relaxed` 模式下高于阈值（默认 0.7）的自动通过，低于阈值的自动重试（最多 3 次），超出重试次数的标记为需人工处理。全部审查项处理完成后，pipeline 状态变为 `completed`。
+
+### 两种模式对比
+
+| 维度 | Agent Sessions | Agent Pipeline |
+|------|---------------|----------------|
+| 决策方式 | LLM 每轮自主决定下一步 | 固定图顺序，无 LLM 路由 |
+| 实时通信 | WebSocket（双向） | SSE（`/api/sse`）+ DB 轮询 |
+| 状态管理 | 对话历史 + 三层记忆 | PipelineState 对象逐节点传递 |
+| 人工介入 | Checkpoint 交互式审批 | 质量审查项（完成后批量审核） |
+| 任务等待 | Redis pub/sub（实时） | 数据库轮询（2s 间隔） |
+| 持久化 | agentSession / agentMessage / agentMemoryEntry | pipelineRun / graphRun / graphStep / graphEvent / pipelineReviewItem |
+| 适用场景 | 灵活探索、交互式创作 | 批量生产、确定性流程 |
+
+---
+
 ## 运行架构
 
 项目默认不是单纯的前端站点，而是一个包含多进程协作的应用：
