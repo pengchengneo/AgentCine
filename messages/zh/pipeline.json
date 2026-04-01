@@ -137,5 +137,13 @@
   "renderDownload": "渲染下载",
   "renderingFilm": "渲染中...",
   "downloadFilm": "下载成片",
-  "renderFailed": "渲染失败，请重试"
+  "renderFailed": "渲染失败，请重试",
+
+  "exitProtectionHint": "Pipeline 运行中，完成后可切换到手动模式",
+  "subSteps": "子步骤",
+  "currentTask": "当前任务",
+  "reviewItems": "审核项",
+  "approved": "已通过",
+  "error": "错误",
+  "statusPending": "等待中"
 }

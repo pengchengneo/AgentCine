@@ -137,5 +137,13 @@
   "renderDownload": "Render & Download",
   "renderingFilm": "Rendering...",
   "downloadFilm": "Download Film",
-  "renderFailed": "Render failed, please retry"
+  "renderFailed": "Render failed, please retry",
+
+  "exitProtectionHint": "Pipeline is running. Switch to manual mode after completion.",
+  "subSteps": "Sub-steps",
+  "currentTask": "Current Task",
+  "reviewItems": "Review Items",
+  "approved": "Approved",
+  "error": "Error",
+  "statusPending": "Pending"
 }
