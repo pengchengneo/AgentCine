@@ -5,6 +5,7 @@ import { createRun } from '@/lib/run-runtime/service'
 import { getProjectModelConfig, checkRequiredModels } from '@/lib/config-service'
 import { DEFAULT_PIPELINE_CONFIG, PIPELINE_STATUS, type PipelineConfig } from './types'
 import { runAgentPipelineGraph } from './graph/super-graph'
+import { PipelinePausedError } from '@/lib/run-runtime/graph-executor'
 import { createScopedLogger } from '@/lib/logging/core'
 
 export async function startPipeline(params: {
@@ -103,6 +104,19 @@ export async function startPipeline(params: {
       }
     })
     .catch(async (error: unknown) => {
+      if (error instanceof PipelinePausedError) {
+        // Pipeline was paused — update GraphRun status and leave PipelineRun as paused
+        await prisma.graphRun.updateMany({
+          where: { id: graphRun.id, status: { in: ['running', 'queued'] } },
+          data: { status: 'paused' },
+        })
+        logger.info({
+          action: 'pipeline.paused',
+          message: 'Pipeline paused by user',
+        })
+        return
+      }
+
       const message = error instanceof Error ? error.message : String(error)
       await prisma.pipelineRun.update({
         where: { id: pipelineRun.id },
