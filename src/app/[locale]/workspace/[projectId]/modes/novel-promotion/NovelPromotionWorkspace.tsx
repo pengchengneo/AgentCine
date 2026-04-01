@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import ProgressToast from '@/components/ProgressToast'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { AnimatedBackground } from '@/components/ui/SharedComponents'
+import { AppIcon } from '@/components/ui/icons'
 import { useTranslations } from 'next-intl'
 import { WorkspaceProvider } from './WorkspaceProvider'
 import WorkspaceRunStreamConsoles from './components/WorkspaceRunStreamConsoles'
@@ -26,6 +27,7 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
   const [isAgentMode, setIsAgentMode] = useState(true)
   const [pipelineRunId, setPipelineRunId] = useState<string | null>(null)
   const [editorProject, setEditorProject] = useState<VideoEditorProject | null>(null)
+  const [isPipelineCollapsed, setIsPipelineCollapsed] = useState(false)
 
   const {
     project,
@@ -150,45 +152,67 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
 
       <div className="pt-20">
         {isAgentMode ? (
-          <div className="flex gap-6 px-6 h-[calc(100vh-6rem)]">
-            {/* Left sidebar: Pipeline Dashboard */}
-            <div className="w-80 flex-shrink-0">
-              <AgentPipelineDashboard
-                projectId={projectId}
-                episodeId={episodeId ?? ''}
-                novelText={vm.project.novelText}
-                disabled={!vm.project.novelText?.trim()}
-                pipelineRunId={pipelineRunId}
-                onStarted={setPipelineRunId}
-                onEnterEditor={async () => {
-                  // Load editor project for this episode
-                  if (!episodeId) {
-                    console.error('[Editor] No episodeId available')
-                    return
-                  }
-                  try {
-                    const res = await fetch(`/api/novel-promotion/${projectId}/editor?episodeId=${episodeId}`)
-                    if (res.ok) {
-                      const data = await res.json()
-                      if (data.projectData) {
-                        setEditorProject(typeof data.projectData === 'string' ? JSON.parse(data.projectData) : data.projectData)
-                      } else {
-                        console.error('[Editor] No projectData in response', data)
+          <>
+            {/* Fixed left-edge Pipeline sidebar */}
+            <div
+              className={`fixed left-0 top-16 bottom-0 z-20 flex transition-all duration-300 ease-in-out ${
+                isPipelineCollapsed ? 'w-0' : 'w-[340px]'
+              }`}
+            >
+              {!isPipelineCollapsed && (
+                <div className="flex-1 overflow-y-auto p-4 pt-6">
+                  <AgentPipelineDashboard
+                    projectId={projectId}
+                    episodeId={episodeId ?? ''}
+                    novelText={vm.project.novelText}
+                    disabled={!vm.project.novelText?.trim()}
+                    pipelineRunId={pipelineRunId}
+                    onStarted={setPipelineRunId}
+                    onEnterEditor={async () => {
+                      if (!episodeId) {
+                        console.error('[Editor] No episodeId available')
+                        return
                       }
-                    } else {
-                      console.error('[Editor] Load failed:', res.status)
-                    }
-                  } catch (err) {
-                    console.error('[Editor] Load error:', err)
-                  }
-                }}
-              />
+                      try {
+                        const res = await fetch(`/api/novel-promotion/${projectId}/editor?episodeId=${episodeId}`)
+                        if (res.ok) {
+                          const data = await res.json()
+                          if (data.projectData) {
+                            setEditorProject(typeof data.projectData === 'string' ? JSON.parse(data.projectData) : data.projectData)
+                          } else {
+                            console.error('[Editor] No projectData in response', data)
+                          }
+                        } else {
+                          console.error('[Editor] Load failed:', res.status)
+                        }
+                      } catch (err) {
+                        console.error('[Editor] Load error:', err)
+                      }
+                    }}
+                  />
+                </div>
+              )}
+              {/* Collapse / Expand toggle */}
+              <button
+                onClick={() => setIsPipelineCollapsed((v) => !v)}
+                className="absolute top-4 -right-4 z-30 w-8 h-8 rounded-full bg-white/80 border border-orange-200/60 shadow-md backdrop-blur-sm flex items-center justify-center text-orange-600 hover:bg-orange-50 hover:border-orange-300 transition-all"
+              >
+                <AppIcon
+                  name={isPipelineCollapsed ? 'chevronRight' : 'chevronLeft'}
+                  className="h-4 w-4"
+                />
+              </button>
             </div>
-            {/* Right content: Review Panel */}
-            <div className="flex-1 min-w-0">
+
+            {/* Right content shifts by sidebar width */}
+            <div
+              className={`transition-all duration-300 ease-in-out h-[calc(100vh-6rem)] px-6 ${
+                isPipelineCollapsed ? 'ml-4' : 'ml-[340px]'
+              }`}
+            >
               {pipelineRunId && <ReviewPanel projectId={projectId} />}
             </div>
-          </div>
+          </>
         ) : (
           <WorkspaceStageRuntimeProvider value={vm.runtime.stageRuntime}>
             <WorkspaceStageContent currentStage={vm.stageNav.currentStage} />

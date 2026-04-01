@@ -39,7 +39,7 @@ export function AgentPipelineDashboard({
   }, [dataPipelineRunId, pipelineRunId])
 
   return (
-    <div className="glass-surface rounded-xl p-5 space-y-4 sticky top-28">
+    <div className="glass-surface rounded-xl p-5 space-y-4">
       <PipelineActionBar
         projectId={projectId}
         episodeId={episodeId}
