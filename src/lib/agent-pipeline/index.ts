@@ -177,6 +177,11 @@ export async function resumePipeline(params: {
   })
   const completedNodes = completedSteps.map((s) => s.stepKey)
 
+  const novelData = await prisma.novelPromotionProject.findUnique({
+    where: { projectId: params.projectId },
+    select: { artStyle: true, videoRatio: true },
+  })
+
   // Get latest checkpoint state
   const checkpoints = await prisma.graphCheckpoint.findMany({
     where: { runId: graphRun.id },
@@ -184,39 +189,34 @@ export async function resumePipeline(params: {
     take: 1,
   })
 
+  if (checkpoints.length === 0) {
+    throw new Error('No checkpoint found for paused pipeline — cannot resume')
+  }
+
   // Build checkpoint state
-  let checkpointState: Record<string, unknown> = {}
-  if (checkpoints.length > 0 && checkpoints[0].stateJson) {
-    const saved = checkpoints[0].stateJson as Record<string, unknown>
-    const novelData = await prisma.novelPromotionProject.findUnique({
-      where: { projectId: params.projectId },
-      select: { artStyle: true, videoRatio: true },
-    })
-
-    const config = (pipelineRun.config as PipelineConfig) || DEFAULT_PIPELINE_CONFIG
-
-    checkpointState = {
-      refs: saved.refs || {},
-      meta: saved.meta || {},
-      projectId: params.projectId,
-      userId: params.userId,
-      pipelineRunId: params.pipelineRunId,
-      script: '',
-      artStyle: novelData?.artStyle || '',
-      aspectRatio: novelData?.videoRatio || '9:16',
-      config,
-      characters: [],
-      locations: [],
-      episodeIds: [],
-      styleProfile: null,
-      characterAssetsLocked: completedNodes.includes('art_director_agent'),
-      locationAssetsLocked: completedNodes.includes('art_director_agent'),
-      storyboardComplete: completedNodes.includes('storyboard_agent'),
-      panelCount: 0,
-      currentPhase: pipelineRun.currentPhase || 'script',
-      qualityGates: [],
-      error: null,
-    }
+  const saved = (checkpoints[0].stateJson || {}) as Record<string, unknown>
+  const config = (pipelineRun.config as PipelineConfig) || DEFAULT_PIPELINE_CONFIG
+  const checkpointState: Record<string, unknown> = {
+    refs: saved.refs || {},
+    meta: saved.meta || {},
+    projectId: params.projectId,
+    userId: params.userId,
+    pipelineRunId: params.pipelineRunId,
+    script: '',
+    artStyle: novelData?.artStyle || '',
+    aspectRatio: novelData?.videoRatio || '9:16',
+    config,
+    characters: [],
+    locations: [],
+    episodeIds: [],
+    styleProfile: null,
+    characterAssetsLocked: completedNodes.includes('art_director_agent'),
+    locationAssetsLocked: completedNodes.includes('art_director_agent'),
+    storyboardComplete: completedNodes.includes('storyboard_agent'),
+    panelCount: 0,
+    currentPhase: pipelineRun.currentPhase || 'script',
+    qualityGates: [],
+    error: null,
   }
 
   // Update statuses
@@ -241,11 +241,6 @@ export async function resumePipeline(params: {
       lastErrorCode: null,
       lastErrorMessage: null,
     },
-  })
-
-  const novelData = await prisma.novelPromotionProject.findUnique({
-    where: { projectId: params.projectId },
-    select: { artStyle: true, videoRatio: true },
   })
 
   logger.info({
@@ -277,7 +272,7 @@ export async function resumePipeline(params: {
         await prisma.pipelineRun.update({
           where: { id: params.pipelineRunId },
           data: {
-            status: PIPELINE_STATUS.REVIEW,
+            status: PIPELINE_STATUS.COMPLETED,
             completedAt: new Date(),
           },
         })

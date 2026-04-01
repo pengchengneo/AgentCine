@@ -144,14 +144,18 @@ export async function executePipelineGraph<TState extends GraphExecutorState>(
             attempt,
             state,
             emitSubStep: async (subStepKey: string, status: 'running' | 'completed' | 'failed') => {
-              await createSubStepEvent({
-                runId,
-                projectId,
-                userId,
-                stepKey: node.key,
-                subStepKey,
-                status,
-              })
+              try {
+                await createSubStepEvent({
+                  runId,
+                  projectId,
+                  userId,
+                  stepKey: node.key,
+                  subStepKey,
+                  status,
+                })
+              } catch {
+                // Sub-step events are observational — don't fail the pipeline
+              }
             },
           }),
           node.timeoutMs || 0,
