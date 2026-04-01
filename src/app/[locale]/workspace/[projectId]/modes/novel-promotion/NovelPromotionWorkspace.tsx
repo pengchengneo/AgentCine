@@ -13,7 +13,10 @@ import WorkspaceAssetLibraryModal from './components/WorkspaceAssetLibraryModal'
 import WorkspaceHeaderShell from './components/WorkspaceHeaderShell'
 import { AgentPipelineDashboard } from './components/agent-pipeline/AgentPipelineDashboard'
 import { AgentModeToggle } from './components/agent-pipeline/AgentModeToggle'
-import { ReviewPanel } from './components/ReviewPanel'
+import { WorkflowCanvas } from './components/agent-pipeline/WorkflowCanvas'
+import { NodeDetailPanel } from './components/agent-pipeline/NodeDetailPanel'
+import { usePipelineStatus } from './hooks/usePipelineStatus'
+import { getAgentByStepKey } from '@/lib/agent-pipeline/agent-identities'
 import { WorkspaceStageRuntimeProvider } from './WorkspaceStageRuntimeContext'
 import { useNovelPromotionWorkspaceController } from './hooks/useNovelPromotionWorkspaceController'
 import { VideoEditorStage } from '@/features/video-editor'
@@ -28,6 +31,13 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
   const [pipelineRunId, setPipelineRunId] = useState<string | null>(null)
   const [editorProject, setEditorProject] = useState<VideoEditorProject | null>(null)
   const [isPipelineCollapsed, setIsPipelineCollapsed] = useState(false)
+
+  const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null)
+
+  const { data: pipelineData } = usePipelineStatus(props.projectId, isAgentMode)
+  const pipelineActive = pipelineData?.exists === true &&
+    (pipelineData.status === 'running' || pipelineData.status === 'paused' || pipelineData.status === 'review')
+  const hasCompletedOnce = pipelineData?.status === 'completed'
 
   const {
     project,
@@ -146,21 +156,28 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
         assetLibraryLabel={vm.i18n.t('buttons.assetLibrary')}
         settingsLabel={vm.i18n.t('buttons.settings')}
         refreshTitle={vm.i18n.t('buttons.refreshData')}
-        headerSlot={<AgentModeToggle isAgentMode={isAgentMode} onToggle={handleToggleMode} />}
+        headerSlot={
+          <AgentModeToggle
+            isAgentMode={isAgentMode}
+            onToggle={handleToggleMode}
+            pipelineActive={pipelineActive}
+            hasCompletedOnce={hasCompletedOnce}
+          />
+        }
         hideCapsuleNav={isAgentMode}
       />
 
       <div className="pt-20">
         {isAgentMode ? (
           <>
-            {/* Fixed left-edge Pipeline sidebar */}
+            {/* Slim left control console */}
             <div
               className={`fixed left-0 top-16 bottom-0 z-20 flex transition-all duration-300 ease-in-out ${
-                isPipelineCollapsed ? 'w-0' : 'w-[340px]'
+                isPipelineCollapsed ? 'w-0' : 'w-[220px]'
               }`}
             >
               {!isPipelineCollapsed && (
-                <div className="flex-1 overflow-y-auto p-4 pt-6">
+                <div className="flex-1 overflow-y-auto p-3 pt-5">
                   <AgentPipelineDashboard
                     projectId={projectId}
                     episodeId={episodeId ?? ''}
@@ -204,14 +221,33 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
               </button>
             </div>
 
-            {/* Right content shifts by sidebar width */}
+            {/* Workflow Canvas */}
             <div
-              className={`transition-all duration-300 ease-in-out h-[calc(100vh-6rem)] px-6 ${
-                isPipelineCollapsed ? 'ml-4' : 'ml-[340px]'
-              }`}
+              className={`transition-all duration-300 ease-in-out h-[calc(100vh-6rem)] ${
+                isPipelineCollapsed ? 'ml-4' : 'ml-[220px]'
+              } ${selectedNodeKey ? 'mr-[400px]' : ''}`}
             >
-              {pipelineRunId && <ReviewPanel projectId={projectId} />}
+              <WorkflowCanvas
+                projectId={projectId}
+                onNodeClick={(stepKey) => setSelectedNodeKey((prev) => prev === stepKey ? null : stepKey)}
+              />
             </div>
+
+            {/* Node Detail Panel (slides in from right) */}
+            {selectedNodeKey && (
+              <NodeDetailPanel
+                stepKey={selectedNodeKey}
+                projectId={projectId}
+                step={pipelineData?.steps?.find((s) => s.stepKey === selectedNodeKey) ?? null}
+                activeTask={
+                  pipelineData?.currentPhase === getAgentByStepKey(selectedNodeKey)?.phaseKey
+                    ? pipelineData?.activeTask
+                    : null
+                }
+                logs={pipelineData?.logs}
+                onClose={() => setSelectedNodeKey(null)}
+              />
+            )}
           </>
         ) : (
           <WorkspaceStageRuntimeProvider value={vm.runtime.stageRuntime}>
