@@ -176,28 +176,45 @@ export async function getPipelineRunDetail(projectId: string): Promise<PipelineS
     })
   } else {
     // No GraphStep records — build fallback steps from agent identities
-    // and infer status from sub-step events and pipeline phase progression
-    const pipelinePhase = pipelineRun.currentPhase
-    const phaseOrder = AGENT_IDENTITIES.map((a) => a.phaseKey)
-    const currentPhaseIdx = pipelinePhase ? phaseOrder.indexOf(pipelinePhase) : -1
+    // and infer status from sub-step events
+    const pipelineFailed = pipelineRun.status === 'failed'
 
     steps = AGENT_IDENTITIES.map((agent, index) => {
       const stepSubEvents = subStepEvents.filter((e) => e.stepKey === agent.stepKey)
       const hasEvents = stepSubEvents.length > 0
 
+      // Count completed sub-steps from events
+      const completedKeys = new Set<string>()
+      const startedKeys = new Set<string>()
+      const failedKeys = new Set<string>()
+      for (const e of stepSubEvents) {
+        const key = (e.payload as Record<string, unknown> | null)?.subStepKey as string | undefined
+        if (!key) continue
+        if (e.eventType === 'substep.complete') completedKeys.add(key)
+        else if (e.eventType === 'substep.start') startedKeys.add(key)
+        else if (e.eventType === 'substep.error') failedKeys.add(key)
+      }
+
+      const identity = getAgentByStepKey(agent.stepKey)
+      const totalSubSteps = identity?.subSteps.length ?? 0
+      const allSubStepsDone = totalSubSteps > 0 && completedKeys.size >= totalSubSteps
+
       let stepStatus: string
-      if (index < currentPhaseIdx) {
+      if (allSubStepsDone) {
         stepStatus = 'completed'
-      } else if (index === currentPhaseIdx) {
-        stepStatus = pipelineRun.status === 'failed' ? 'failed' : 'running'
+      } else if (failedKeys.size > 0) {
+        stepStatus = 'failed'
+      } else if (hasEvents && pipelineFailed) {
+        // Had some events but not all completed, and pipeline failed
+        stepStatus = 'failed'
       } else if (hasEvents) {
-        // Has sub-step events — check if all completed
-        const allComplete = stepSubEvents.every((e) => e.eventType === 'substep.complete' || e.eventType === 'substep.start')
-        const hasComplete = stepSubEvents.some((e) => e.eventType === 'substep.complete')
-        stepStatus = hasComplete && allComplete ? 'completed' : 'running'
+        stepStatus = 'running'
       } else {
         stepStatus = 'pending'
       }
+
+      // Only attach error message to the step that actually failed
+      const isFailedStep = stepStatus === 'failed'
 
       return {
         stepKey: agent.stepKey,
@@ -206,7 +223,7 @@ export async function getPipelineRunDetail(projectId: string): Promise<PipelineS
         stepIndex: index,
         startedAt: null,
         finishedAt: null,
-        lastErrorMessage: index === currentPhaseIdx && pipelineRun.status === 'failed' ? pipelineRun.errorMessage : null,
+        lastErrorMessage: isFailedStep ? pipelineRun.errorMessage : null,
         usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
         subSteps: buildSubSteps(agent.stepKey, stepSubEvents, stepStatus),
       }
