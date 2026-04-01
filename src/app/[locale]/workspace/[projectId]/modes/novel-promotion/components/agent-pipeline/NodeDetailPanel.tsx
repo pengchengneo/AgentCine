@@ -63,7 +63,7 @@ function StatusBadge({ status, t }: { status: string; t: ReturnType<typeof useTr
 
 function SubStepIcon({ status }: { status: string }) {
   if (status === 'completed')
-    return <AppIcon name="checkCircle2" className="h-4 w-4 text-emerald-400 shrink-0" />
+    return <AppIcon name="checkCircle" className="h-4 w-4 text-emerald-400 shrink-0" />
   if (status === 'running')
     return <span className="h-4 w-4 shrink-0 flex items-center justify-center"><span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /></span>
   if (status === 'failed')
@@ -160,7 +160,7 @@ export function NodeDetailPanel({ stepKey, projectId, step, activeTask, logs, on
           className="shrink-0 rounded-lg p-1.5 text-(--glass-text-tertiary) hover:text-(--glass-text-primary) hover:bg-white/10 transition-colors"
           aria-label="Close"
         >
-          <AppIcon name="x" className="h-4 w-4" />
+          <AppIcon name="close" className="h-4 w-4" />
         </button>
       </div>
 
@@ -258,7 +258,7 @@ export function NodeDetailPanel({ stepKey, projectId, step, activeTask, logs, on
                       </button>
                     ) : (
                       <span className="flex items-center gap-1 text-[11px] text-emerald-400">
-                        <AppIcon name="checkCircle2" className="h-3 w-3" />
+                        <AppIcon name="checkCircle" className="h-3 w-3" />
                         {(t as (k: string) => string | undefined)('approved') ?? '已批准'}
                       </span>
                     )}
