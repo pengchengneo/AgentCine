@@ -25,6 +25,7 @@ export async function runScriptAgent(
 
   logger.info({ action: 'script_agent.start', message: 'Starting script analysis' })
   await log('开始剧本分析')
+  await context.emitSubStep('analyze_novel', 'running')
 
   // Step 1: Get novel project
   const novelData = await prisma.novelPromotionProject.findUnique({
@@ -49,6 +50,8 @@ export async function runScriptAgent(
   })
   await waitForTaskCompletion(analyzeResult.taskId, state.projectId)
   await log('小说分析完成')
+  await context.emitSubStep('analyze_novel', 'completed')
+  await context.emitSubStep('extract_characters', 'running')
 
   // Step 3: Read extracted characters and locations from DB
   const characters = await prisma.novelPromotionCharacter.findMany({
@@ -73,6 +76,8 @@ export async function runScriptAgent(
       await updatePromptFragment('location', loc.id, loc.summary)
     }
   }
+  await context.emitSubStep('extract_characters', 'completed')
+  await context.emitSubStep('generate_scripts', 'running')
 
   // Step 5: Submit story_to_script_run task for each episode
   const episodes = await prisma.novelPromotionEpisode.findMany({
@@ -100,6 +105,7 @@ export async function runScriptAgent(
   }
 
   await log(`剧本生成完成，共 ${episodes.length} 集`)
+  await context.emitSubStep('generate_scripts', 'completed')
 
   // Update state
   state.characters = characters.map((c) => ({

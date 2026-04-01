@@ -26,6 +26,7 @@ export async function runArtDirectorAgent(
 
   logger.info({ action: 'art_director.start', message: 'Starting art direction' })
   await log('开始美术资产生成')
+  await context.emitSubStep('create_style_profile', 'running')
 
   const novelData = await prisma.novelPromotionProject.findUnique({
     where: { projectId: state.projectId },
@@ -43,6 +44,8 @@ export async function runArtDirectorAgent(
   })
   state.styleProfile = styleProfile
   await log(`风格配置: ${novelData.artStyle || 'default'}`)
+  await context.emitSubStep('create_style_profile', 'completed')
+  await context.emitSubStep('generate_characters', 'running')
 
   // Step 2a: Ensure character appearances exist (generate visual profiles)
   const unconfirmedChars = await prisma.novelPromotionCharacter.findMany({
@@ -94,6 +97,8 @@ export async function runArtDirectorAgent(
   if (charsToGenerate.length > 0) {
     await log(`${charsToGenerate.length} 个角色图片生成完成`)
   }
+  await context.emitSubStep('generate_characters', 'completed')
+  await context.emitSubStep('generate_locations', 'running')
 
   // Step 3: Generate location images
   const locations = await getLocationAssets(novelData.id)
@@ -121,6 +126,7 @@ export async function runArtDirectorAgent(
   if (locsToGenerate.length > 0) {
     await log(`${locsToGenerate.length} 个场景图片生成完成`)
   }
+  await context.emitSubStep('generate_locations', 'completed')
 
   // Step 4: Lock all assets
   const updatedCharacters = await getCharacterAssets(novelData.id)

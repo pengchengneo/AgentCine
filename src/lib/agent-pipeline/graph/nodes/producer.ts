@@ -24,6 +24,7 @@ export async function runProducerQualityCheck(
 
   logger.info({ action: 'producer.quality_check', message: 'Running final quality check' })
   await log('开始质量检查与审核项创建')
+  await context.emitSubStep('create_review_items', 'running')
 
   const novelData = await prisma.novelPromotionProject.findUnique({
     where: { projectId: state.projectId },
@@ -87,6 +88,8 @@ export async function runProducerQualityCheck(
     })),
   )
   await log(`创建 ${panels.length} 个分镜画面审核项`)
+  await context.emitSubStep('create_review_items', 'completed')
+  await context.emitSubStep('quality_scoring', 'running')
 
   // Check if all items are already auto-passed — if so, go directly to completed
   const pendingCount = await prisma.pipelineReviewItem.count({
@@ -116,8 +119,11 @@ export async function runProducerQualityCheck(
     state.currentPhase = 'video'
     await log(`${pendingCount} 项待审核，继续视频/配音/成片流程`)
   }
+  await context.emitSubStep('quality_scoring', 'completed')
+  await context.emitSubStep('generate_report', 'running')
 
   await log(`质量检查完成，共创建 ${characters.length + locations.length + panels.length} 个审核项`)
+  await context.emitSubStep('generate_report', 'completed')
   logger.info({
     action: 'producer.quality_check.complete',
     message: `Created review items: ${characters.length} characters, ${locations.length} locations, ${panels.length} panels`,
