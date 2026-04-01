@@ -12,6 +12,7 @@ type Props = {
   novelText: string
   disabled: boolean
   pipelineStatus?: string
+  errorMessage?: string | null
   runId: string | null
   onStarted: (pipelineRunId: string) => void
   onEnterEditor: () => void
@@ -65,6 +66,7 @@ export function PipelineActionBar({
   novelText,
   disabled,
   pipelineStatus,
+  errorMessage,
   runId,
   onStarted,
   onEnterEditor,
@@ -334,6 +336,13 @@ export function PipelineActionBar({
         <div className="flex items-start gap-2 rounded-lg bg-red-900/30 border border-red-800 px-3 py-2 text-xs text-red-300">
           <AppIcon name="alertCircle" className="h-3.5 w-3.5 mt-0.5 shrink-0" />
           <span>{startMutation.error.message}</span>
+        </div>
+      )}
+
+      {isFailed && errorMessage && (
+        <div className="flex items-start gap-2 rounded-lg bg-red-900/30 border border-red-800 px-3 py-2 text-xs text-red-300">
+          <AppIcon name="alertCircle" className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+          <span className="break-all">{errorMessage}</span>
         </div>
       )}
     </div>

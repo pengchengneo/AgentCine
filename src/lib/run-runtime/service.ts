@@ -958,18 +958,26 @@ export async function createSubStepEvent(params: {
       ? 'substep.complete'
       : 'substep.error'
 
-  await runtimeClient.graphEvent.create({
-    data: {
-      runId: params.runId,
-      projectId: params.projectId,
-      userId: params.userId,
-      seq: 0,
-      eventType,
-      stepKey: params.stepKey,
-      attempt: null,
-      lane: null,
-      payload: { subStepKey: params.subStepKey },
-    },
+  await runtimeClient.$transaction(async (tx) => {
+    const run = await tx.graphRun.update({
+      where: { id: params.runId },
+      data: { lastSeq: { increment: 1 } },
+      select: { lastSeq: true },
+    })
+
+    await tx.graphEvent.create({
+      data: {
+        runId: params.runId,
+        projectId: params.projectId,
+        userId: params.userId,
+        seq: run.lastSeq,
+        eventType,
+        stepKey: params.stepKey,
+        attempt: null,
+        lane: null,
+        payload: { subStepKey: params.subStepKey },
+      },
+    })
   })
 }
 

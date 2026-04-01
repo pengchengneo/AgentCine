@@ -46,6 +46,7 @@ export function AgentPipelineDashboard({
         novelText={novelText}
         disabled={disabled}
         pipelineStatus={data?.status}
+        errorMessage={data?.errorMessage}
         runId={data?.runId ?? null}
         onStarted={onStarted}
         onEnterEditor={onEnterEditor}
