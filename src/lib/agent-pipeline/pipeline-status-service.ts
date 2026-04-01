@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { getReviewSummary } from './review/review-service'
 import type { ReviewSummary } from './review/types'
-import { getAgentByStepKey } from './agent-identities'
+import { getAgentByStepKey, AGENT_IDENTITIES } from './agent-identities'
 import type { TokenUsage, StepInfo, SubStepInfo, ActiveTaskInfo, PipelineLogEntry } from './pipeline-types'
 
 export type PipelineStatusDetail = {
@@ -145,32 +145,73 @@ export async function getPipelineRunDetail(projectId: string): Promise<PipelineS
   ])
 
   const totalUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
-  const steps: StepInfo[] = graphSteps.map((s) => {
-    const stepUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
-    for (const attempt of s.attempts) {
-      const au = sumUsageFromJson(attempt.usageJson)
-      stepUsage.promptTokens += au.promptTokens
-      stepUsage.completionTokens += au.completionTokens
-      stepUsage.totalTokens += au.totalTokens
-    }
-    totalUsage.promptTokens += stepUsage.promptTokens
-    totalUsage.completionTokens += stepUsage.completionTokens
-    totalUsage.totalTokens += stepUsage.totalTokens
+  let steps: StepInfo[]
 
-    const stepSubEvents = subStepEvents.filter((e) => e.stepKey === s.stepKey)
+  if (graphSteps.length > 0) {
+    steps = graphSteps.map((s) => {
+      const stepUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
+      for (const attempt of s.attempts) {
+        const au = sumUsageFromJson(attempt.usageJson)
+        stepUsage.promptTokens += au.promptTokens
+        stepUsage.completionTokens += au.completionTokens
+        stepUsage.totalTokens += au.totalTokens
+      }
+      totalUsage.promptTokens += stepUsage.promptTokens
+      totalUsage.completionTokens += stepUsage.completionTokens
+      totalUsage.totalTokens += stepUsage.totalTokens
 
-    return {
-      stepKey: s.stepKey,
-      stepTitle: s.stepTitle,
-      status: s.status,
-      stepIndex: s.stepIndex,
-      startedAt: s.startedAt?.toISOString() ?? null,
-      finishedAt: s.finishedAt?.toISOString() ?? null,
-      lastErrorMessage: s.lastErrorMessage,
-      usage: stepUsage,
-      subSteps: buildSubSteps(s.stepKey, stepSubEvents, s.status),
-    }
-  })
+      const stepSubEvents = subStepEvents.filter((e) => e.stepKey === s.stepKey)
+
+      return {
+        stepKey: s.stepKey,
+        stepTitle: s.stepTitle,
+        status: s.status,
+        stepIndex: s.stepIndex,
+        startedAt: s.startedAt?.toISOString() ?? null,
+        finishedAt: s.finishedAt?.toISOString() ?? null,
+        lastErrorMessage: s.lastErrorMessage,
+        usage: stepUsage,
+        subSteps: buildSubSteps(s.stepKey, stepSubEvents, s.status),
+      }
+    })
+  } else {
+    // No GraphStep records — build fallback steps from agent identities
+    // and infer status from sub-step events and pipeline phase progression
+    const pipelinePhase = pipelineRun.currentPhase
+    const phaseOrder = AGENT_IDENTITIES.map((a) => a.phaseKey)
+    const currentPhaseIdx = pipelinePhase ? phaseOrder.indexOf(pipelinePhase) : -1
+
+    steps = AGENT_IDENTITIES.map((agent, index) => {
+      const stepSubEvents = subStepEvents.filter((e) => e.stepKey === agent.stepKey)
+      const hasEvents = stepSubEvents.length > 0
+
+      let stepStatus: string
+      if (index < currentPhaseIdx) {
+        stepStatus = 'completed'
+      } else if (index === currentPhaseIdx) {
+        stepStatus = pipelineRun.status === 'failed' ? 'failed' : 'running'
+      } else if (hasEvents) {
+        // Has sub-step events — check if all completed
+        const allComplete = stepSubEvents.every((e) => e.eventType === 'substep.complete' || e.eventType === 'substep.start')
+        const hasComplete = stepSubEvents.some((e) => e.eventType === 'substep.complete')
+        stepStatus = hasComplete && allComplete ? 'completed' : 'running'
+      } else {
+        stepStatus = 'pending'
+      }
+
+      return {
+        stepKey: agent.stepKey,
+        stepTitle: '',
+        status: stepStatus,
+        stepIndex: index,
+        startedAt: null,
+        finishedAt: null,
+        lastErrorMessage: index === currentPhaseIdx && pipelineRun.status === 'failed' ? pipelineRun.errorMessage : null,
+        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        subSteps: buildSubSteps(agent.stepKey, stepSubEvents, stepStatus),
+      }
+    })
+  }
 
   let activeTask: ActiveTaskInfo | null = null
   if (activeTasks.length > 0) {
