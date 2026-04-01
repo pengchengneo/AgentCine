@@ -36,12 +36,9 @@ export default function AppShell({ children, noWarmDecor, noBokeh, hideSideNav }
         </div>
       )}
 
-      {/* Version + Update Badge (floating top-right) */}
-      <div className="fixed top-4 right-4 z-40 flex items-center gap-2">
-        <span className="text-[10px] font-medium text-[var(--glass-text-tertiary)] bg-[var(--glass-bg-muted)] rounded-full px-2 py-0.5 backdrop-blur-sm">
-          {currentVersion}
-        </span>
-        {update && (
+      {/* Update Badge only (no version number) */}
+      {update && (
+        <div className="fixed top-4 right-4 z-40">
           <button
             type="button"
             onClick={openModal}
@@ -52,8 +49,8 @@ export default function AppShell({ children, noWarmDecor, noBokeh, hideSideNav }
             <AppIcon name="upload" className="h-3 w-3" />
             {tc('updateNotice.updateTag')}
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className={`relative z-10 ${hideSideNav ? '' : 'pl-20'}`}>
