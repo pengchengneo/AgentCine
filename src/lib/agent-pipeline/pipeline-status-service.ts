@@ -39,6 +39,7 @@ function sumUsageFromJson(usageJson: unknown): TokenUsage {
 function buildSubSteps(
   stepKey: string,
   events: Array<{ eventType: string; payload: unknown; createdAt: Date }>,
+  parentStepStatus: string,
 ): SubStepInfo[] {
   const identity = getAgentByStepKey(stepKey)
   if (!identity) return []
@@ -66,12 +67,18 @@ function buildSubSteps(
     subStepStates.set(subStepKey, existing)
   }
 
+  // When the parent step completed but no sub-step events exist (e.g. due to
+  // the earlier seq=0 bug), infer all sub-steps as completed.
+  const hasNoEvents = subStepStates.size === 0
+  const parentDone = parentStepStatus === 'completed' || parentStepStatus === 'failed'
+
   return identity.subSteps.map((def) => {
     const state = subStepStates.get(def.key)
+    const fallbackStatus: SubStepInfo['status'] = hasNoEvents && parentDone ? 'completed' : 'pending'
     return {
       key: def.key,
       title: def.titleFallback,
-      status: state?.status ?? 'pending',
+      status: state?.status ?? fallbackStatus,
       startedAt: state?.startedAt?.toISOString() ?? null,
       completedAt: state?.completedAt?.toISOString() ?? null,
     }
@@ -161,7 +168,7 @@ export async function getPipelineRunDetail(projectId: string): Promise<PipelineS
       finishedAt: s.finishedAt?.toISOString() ?? null,
       lastErrorMessage: s.lastErrorMessage,
       usage: stepUsage,
-      subSteps: buildSubSteps(s.stepKey, stepSubEvents),
+      subSteps: buildSubSteps(s.stepKey, stepSubEvents, s.status),
     }
   })
 
