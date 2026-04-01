@@ -1,5 +1,5 @@
 import { normalizeAnyError } from '@/lib/errors/normalize'
-import { buildLeanState, createCheckpoint, getRunById } from './service'
+import { buildLeanState, createCheckpoint, createSubStepEvent, getRunById } from './service'
 import type { StateRef } from './types'
 
 type JsonRecord = Record<string, unknown>
@@ -16,6 +16,7 @@ export type GraphNodeContext<TState extends GraphExecutorState> = {
   nodeKey: string
   attempt: number
   state: TState
+  emitSubStep: (subStepKey: string, status: 'running' | 'completed' | 'failed') => Promise<void>
 }
 
 export type GraphNodeResult = {
@@ -123,6 +124,16 @@ export async function executePipelineGraph<TState extends GraphExecutorState>(
             nodeKey: node.key,
             attempt,
             state,
+            emitSubStep: async (subStepKey: string, status: 'running' | 'completed' | 'failed') => {
+              await createSubStepEvent({
+                runId,
+                projectId,
+                userId,
+                stepKey: node.key,
+                subStepKey,
+                status,
+              })
+            },
           }),
           node.timeoutMs || 0,
         )
