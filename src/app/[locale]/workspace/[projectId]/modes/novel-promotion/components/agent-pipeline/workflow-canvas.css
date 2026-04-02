@@ -1,0 +1,47 @@
+/* Override @xyflow/react defaults for glass morphism theme */
+.workflow-canvas .react-flow__background {
+  background-color: transparent;
+}
+.workflow-canvas .react-flow__minimap {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+.workflow-canvas .react-flow__minimap-mask {
+  fill: rgba(255, 255, 255, 0.08);
+}
+.workflow-canvas .react-flow__controls {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: none;
+}
+.workflow-canvas .react-flow__controls-button {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  width: 28px;
+  height: 28px;
+}
+.workflow-canvas .react-flow__controls-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+.workflow-canvas .react-flow__controls-button svg {
+  fill: currentColor;
+}
+
+.animated-edge-flow {
+  animation: edge-dash 1s linear infinite;
+}
+@keyframes edge-dash {
+  to { stroke-dashoffset: -20; }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+@keyframes pulse-subtle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
