@@ -11,11 +11,11 @@ interface CanvasViewNavProps {
 }
 
 const NAV_ITEMS: { view: CanvasView; key: string }[] = [
-  { view: 'overview', key: 'canvasView.overview' },
-  { view: 'script', key: 'canvasView.script' },
-  { view: 'characters', key: 'canvasView.characters' },
-  { view: 'storyboard', key: 'canvasView.storyboard' },
-  { view: 'assembly', key: 'canvasView.assembly' },
+  { view: 'overview', key: 'canvasViewOverview' },
+  { view: 'script', key: 'canvasViewScript' },
+  { view: 'characters', key: 'canvasViewCharacters' },
+  { view: 'storyboard', key: 'canvasViewStoryboard' },
+  { view: 'assembly', key: 'canvasViewAssembly' },
 ]
 
 export const CanvasViewNav = memo(function CanvasViewNav({

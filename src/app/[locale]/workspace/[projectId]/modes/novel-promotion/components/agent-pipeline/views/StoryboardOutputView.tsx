@@ -36,7 +36,7 @@ function PanelCard({ panel, t }: PanelCardProps) {
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-white/10 rounded-t-xl text-white/30">
             <AppIcon name="image" className="h-6 w-6 mb-1" />
-            <span className="text-xs">{t('viewEmpty.notGenerated')}</span>
+            <span className="text-xs">{t('viewEmptyNotGenerated')}</span>
           </div>
         )}
 
@@ -85,10 +85,10 @@ function StoryboardGroupSection({ group, t }: StoryboardGroupSectionProps) {
       {/* Group header */}
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold text-white/70 uppercase tracking-wider">
-          {t('viewSection.storyboardGroup')} {group.stageIndex + 1}
+          {t('viewSectionStoryboardGroup')} {group.stageIndex + 1}
         </span>
         <div className="flex-1 h-px bg-white/10" />
-        <span className="text-xs text-white/40">{group.panels.length} {t('viewSection.panel')}</span>
+        <span className="text-xs text-white/40">{group.panels.length} {t('viewSectionPanel')}</span>
       </div>
 
       {/* Panel grid */}
@@ -125,7 +125,7 @@ export const StoryboardOutputView = memo(function StoryboardOutputView({
             <AppIcon name="layout" className="h-4 w-4 text-white" />
           </div>
           <h2 className="text-base font-semibold text-cyan-300">
-            {t('viewTitle.storyboard')}
+            {t('viewTitleStoryboard')}
           </h2>
         </div>
 
@@ -141,7 +141,7 @@ export const StoryboardOutputView = memo(function StoryboardOutputView({
         {!episodeId && !isLoading && (
           <div className="flex flex-col items-center justify-center py-16 text-white/40 space-y-3">
             <AppIcon name="layout" className="h-8 w-8" />
-            <p className="text-sm">{t('viewEmpty.noStoryboards')}</p>
+            <p className="text-sm">{t('viewEmptyNoStoryboards')}</p>
           </div>
         )}
 
@@ -149,7 +149,7 @@ export const StoryboardOutputView = memo(function StoryboardOutputView({
         {episodeId && !isLoading && groups.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-white/40 space-y-3">
             <AppIcon name="layout" className="h-8 w-8" />
-            <p className="text-sm">{t('viewEmpty.noStoryboards')}</p>
+            <p className="text-sm">{t('viewEmptyNoStoryboards')}</p>
           </div>
         )}
 

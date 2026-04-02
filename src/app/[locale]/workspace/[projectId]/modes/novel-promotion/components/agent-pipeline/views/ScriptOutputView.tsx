@@ -53,7 +53,7 @@ function ClipCard({ clip, index, t }: ClipCardProps) {
       {/* Clip number badge + summary */}
       <div className="flex items-start gap-3">
         <span className="shrink-0 inline-flex items-center rounded-full bg-violet-500/20 border border-violet-500/30 px-2.5 py-0.5 text-xs font-medium text-violet-300">
-          {t('viewSection.scene')} {index + 1}
+          {t('viewSectionScene')} {index + 1}
         </span>
       </div>
 
@@ -90,8 +90,8 @@ function ClipCard({ clip, index, t }: ClipCardProps) {
               className="mt-1 text-xs text-violet-400 hover:text-violet-300 transition-colors"
             >
               {expanded
-                ? t('viewLabel.collapse')
-                : t('viewLabel.expand')}
+                ? t('viewLabelCollapse')
+                : t('viewLabelExpand')}
             </button>
           )}
         </div>
@@ -137,7 +137,7 @@ export const ScriptOutputView = memo(function ScriptOutputView({
             <AppIcon name="fileText" className="h-4 w-4 text-white" />
           </div>
           <h2 className="text-base font-semibold text-violet-300">
-            {t('viewTitle.script')}
+            {t('viewTitleScript')}
           </h2>
         </div>
 
@@ -153,7 +153,7 @@ export const ScriptOutputView = memo(function ScriptOutputView({
         {!episodeId && !isLoading && (
           <div className="flex flex-col items-center justify-center py-16 text-white/40 space-y-3">
             <AppIcon name="fileText" className="h-8 w-8" />
-            <p className="text-sm">{t('viewEmpty.noClips')}</p>
+            <p className="text-sm">{t('viewEmptyNoClips')}</p>
           </div>
         )}
 
@@ -173,7 +173,7 @@ export const ScriptOutputView = memo(function ScriptOutputView({
         {data && data.clips && data.clips.length > 0 ? (
           <div className="space-y-3">
             <p className="text-xs text-white/40 font-medium uppercase tracking-wider">
-              {t('viewSection.clips')} · {data.clips.length}
+              {t('viewSectionClips')} · {data.clips.length}
             </p>
             {data.clips.map((clip, idx) => (
               <ClipCard key={clip.id} clip={clip} index={idx} t={t} />
@@ -184,7 +184,7 @@ export const ScriptOutputView = memo(function ScriptOutputView({
           (!data.clips || data.clips.length === 0) && (
             <div className="flex flex-col items-center justify-center py-16 text-white/40 space-y-3">
               <AppIcon name="fileText" className="h-8 w-8" />
-              <p className="text-sm">{t('viewEmpty.noClips')}</p>
+              <p className="text-sm">{t('viewEmptyNoClips')}</p>
             </div>
           )
         )}

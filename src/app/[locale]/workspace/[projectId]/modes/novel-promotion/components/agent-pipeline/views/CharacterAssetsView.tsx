@@ -27,7 +27,7 @@ function AppearanceImage({ appearance }: { appearance: CharacterAppearance }) {
           flexShrink: 0,
         }}
       >
-        {t('viewEmpty.notGenerated')}
+        {t('viewEmptyNotGenerated')}
       </div>
     )
   }
@@ -95,7 +95,7 @@ function CharacterCard({ character }: { character: Character }) {
           ))}
         </div>
       ) : (
-        <p className="text-white/30 text-xs">{t('viewEmpty.notGenerated')}</p>
+        <p className="text-white/30 text-xs">{t('viewEmptyNotGenerated')}</p>
       )}
     </div>
   )
@@ -118,7 +118,7 @@ function LocationImageThumb({ image }: { image: LocationImage }) {
           flexShrink: 0,
         }}
       >
-        {t('viewEmpty.notGenerated')}
+        {t('viewEmptyNotGenerated')}
       </div>
     )
   }
@@ -184,7 +184,7 @@ function LocationCard({ location }: { location: Location }) {
           ))}
         </div>
       ) : (
-        <p className="text-white/30 text-xs">{t('viewEmpty.notGenerated')}</p>
+        <p className="text-white/30 text-xs">{t('viewEmptyNotGenerated')}</p>
       )}
     </div>
   )
@@ -229,7 +229,7 @@ function CharacterAssetsViewInner({ projectId }: CharacterAssetsViewProps) {
           <div className="flex items-center gap-2">
             <AppIcon name="sparkles" className="w-5 h-5 text-amber-400" />
             <span className="font-semibold text-amber-400" style={{ fontSize: 16 }}>
-              {t('viewTitle.characters')}
+              {t('viewTitleCharacters')}
             </span>
           </div>
           {/* Gradient underline */}
@@ -260,7 +260,7 @@ function CharacterAssetsViewInner({ projectId }: CharacterAssetsViewProps) {
         {/* Characters section */}
         {!isLoading && hasCharacters && (
           <div className="flex flex-col gap-3">
-            <SectionLabel>{t('viewSection.characters')}</SectionLabel>
+            <SectionLabel>{t('viewSectionCharacters')}</SectionLabel>
             <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
               {characters.map((character) => (
                 <CharacterCard key={character.id} character={character} />
@@ -272,7 +272,7 @@ function CharacterAssetsViewInner({ projectId }: CharacterAssetsViewProps) {
         {/* Locations section */}
         {!isLoading && hasLocations && (
           <div className="flex flex-col gap-3">
-            <SectionLabel>{t('viewSection.locations')}</SectionLabel>
+            <SectionLabel>{t('viewSectionLocations')}</SectionLabel>
             <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
               {locations.map((location) => (
                 <LocationCard key={location.id} location={location} />

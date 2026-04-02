@@ -239,6 +239,7 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
               className={`relative transition-all duration-300 ease-in-out h-[calc(100vh-6rem)] ${
                 isPipelineCollapsed ? 'ml-4' : 'ml-[220px]'
               } ${canvasView === 'overview' && selectedNodeKey ? 'mr-[400px]' : ''}`}
+              style={{ backgroundColor: '#0f1117' }}
             >
               {/* Canvas View Navigation */}
               <CanvasViewNav activeView={canvasView} onViewChange={handleCanvasViewChange} />

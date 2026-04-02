@@ -108,7 +108,7 @@ export const AssemblyOutputView = memo(function AssemblyOutputView({
         <div className="flex items-center gap-2 mb-8 self-start">
           <AppIcon name="film" className="h-5 w-5 text-yellow-400" />
           <span className="text-base font-semibold text-yellow-400">
-            {t('viewTitle.assembly')}
+            {t('viewTitleAssembly')}
           </span>
         </div>
 
@@ -140,7 +140,7 @@ export const AssemblyOutputView = memo(function AssemblyOutputView({
                   <RenderStatusBadge status={editorData?.renderStatus} />
                   {editorData?.updatedAt && (
                     <span className="text-xs text-white/40">
-                      {t('viewLabel.renderCompleted')} ·{' '}
+                      {t('viewLabelRenderCompleted')} ·{' '}
                       {dateFormatter.format(new Date(editorData.updatedAt))}
                     </span>
                   )}
@@ -161,7 +161,7 @@ export const AssemblyOutputView = memo(function AssemblyOutputView({
                   <div className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-xl p-4 grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-[11px] text-white/40 mb-1">
-                        {t('viewLabel.renderCompleted')}
+                        {t('viewLabelRenderCompleted')}
                       </p>
                       <p className="text-sm font-medium text-white/80">
                         {editorData?.updatedAt
@@ -192,7 +192,7 @@ export const AssemblyOutputView = memo(function AssemblyOutputView({
                   />
                 </div>
                 <p className="text-sm font-medium text-white/70">
-                  {t('viewLabel.rendering')}
+                  {t('viewLabelRendering')}
                 </p>
               </div>
             )}
@@ -213,10 +213,10 @@ export const AssemblyOutputView = memo(function AssemblyOutputView({
                 <AppIcon name="film" className="h-14 w-14 text-white/20" />
                 <div className="text-center space-y-1.5">
                   <p className="text-base font-medium text-white/50">
-                    {t('viewEmpty.noAssembly')}
+                    {t('viewEmptyNoAssembly')}
                   </p>
                   <p className="text-sm text-white/30 max-w-xs">
-                    {t('viewEmpty.assemblyHint')}
+                    {t('viewEmptyAssemblyHint')}
                   </p>
                 </div>
               </div>
