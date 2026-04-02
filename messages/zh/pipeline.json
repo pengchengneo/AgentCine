@@ -145,5 +145,43 @@
   "reviewItems": "审核项",
   "approved": "已通过",
   "error": "错误",
-  "statusPending": "等待中"
+  "statusPending": "等待中",
+
+  "canvasViewOverview": "总览",
+  "canvasViewScript": "剧本",
+  "canvasViewCharacters": "角色",
+  "canvasViewStoryboard": "分镜",
+  "canvasViewAssembly": "成片",
+
+  "viewTitleCharacters": "美术设计师",
+  "viewTitleScript": "剧本 Agent",
+  "viewTitleStoryboard": "分镜 Agent",
+  "viewTitleAssembly": "成片",
+
+  "viewSectionCharacters": "角色",
+  "viewSectionLocations": "场景",
+  "viewSectionScene": "场景",
+  "viewSectionClips": "场景片段",
+  "viewSectionStoryboardGroup": "分镜",
+  "viewSectionPanel": "画面",
+
+  "viewEmptyNoCharacters": "暂无角色数据",
+  "viewEmptyNoLocations": "暂无场景数据",
+  "viewEmptyNoClips": "暂无剧本数据",
+  "viewEmptyNoStoryboards": "暂无分镜数据",
+  "viewEmptyNoAssembly": "尚未合成",
+  "viewEmptyAssemblyHint": "完成分镜和配音生成后，系统将自动合成成片",
+  "viewEmptyNotGenerated": "未生成",
+
+  "viewLabelShotType": "镜头类型",
+  "viewLabelCameraMove": "运镜",
+  "viewLabelLocation": "场景",
+  "viewLabelCharacters": "角色",
+  "viewLabelRendering": "渲染中...",
+  "viewLabelRenderCompleted": "渲染完成",
+  "viewLabelRenderFailed": "渲染失败",
+  "viewLabelDownload": "下载",
+  "viewLabelExpand": "展开",
+  "viewLabelCollapse": "收起",
+  "viewLabelAppearance": "形象"
 }
