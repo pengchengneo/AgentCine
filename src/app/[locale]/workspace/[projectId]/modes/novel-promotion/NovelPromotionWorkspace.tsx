@@ -15,6 +15,11 @@ import { AgentPipelineDashboard } from './components/agent-pipeline/AgentPipelin
 import { AgentModeToggle } from './components/agent-pipeline/AgentModeToggle'
 import { WorkflowCanvas } from './components/agent-pipeline/WorkflowCanvas'
 import { NodeDetailPanel } from './components/agent-pipeline/NodeDetailPanel'
+import { CanvasViewNav, type CanvasView } from './components/agent-pipeline/views/CanvasViewNav'
+import { CharacterAssetsView } from './components/agent-pipeline/views/CharacterAssetsView'
+import { ScriptOutputView } from './components/agent-pipeline/views/ScriptOutputView'
+import { StoryboardOutputView } from './components/agent-pipeline/views/StoryboardOutputView'
+import { AssemblyOutputView } from './components/agent-pipeline/views/AssemblyOutputView'
 import { usePipelineStatus } from './hooks/usePipelineStatus'
 import { getAgentByStepKey } from '@/lib/agent-pipeline/agent-identities'
 import { WorkspaceStageRuntimeProvider } from './WorkspaceStageRuntimeContext'
@@ -33,6 +38,14 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
   const [isPipelineCollapsed, setIsPipelineCollapsed] = useState(false)
 
   const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null)
+  const [canvasView, setCanvasView] = useState<CanvasView>('overview')
+
+  const handleCanvasViewChange = useCallback((view: CanvasView) => {
+    setCanvasView(view)
+    if (view !== 'overview') {
+      setSelectedNodeKey(null)
+    }
+  }, [])
 
   const { data: pipelineData } = usePipelineStatus(props.projectId, isAgentMode)
   const pipelineActive = pipelineData?.exists === true &&
@@ -221,20 +234,34 @@ function NovelPromotionWorkspaceContent(props: NovelPromotionWorkspaceProps) {
               </button>
             </div>
 
-            {/* Workflow Canvas */}
+            {/* Workflow Canvas / Agent Output Views */}
             <div
-              className={`transition-all duration-300 ease-in-out h-[calc(100vh-6rem)] ${
+              className={`relative transition-all duration-300 ease-in-out h-[calc(100vh-6rem)] ${
                 isPipelineCollapsed ? 'ml-4' : 'ml-[220px]'
-              } ${selectedNodeKey ? 'mr-[400px]' : ''}`}
+              } ${canvasView === 'overview' && selectedNodeKey ? 'mr-[400px]' : ''}`}
             >
-              <WorkflowCanvas
-                projectId={projectId}
-                onNodeClick={(stepKey) => setSelectedNodeKey((prev) => prev === stepKey ? null : stepKey)}
-              />
+              {/* Canvas View Navigation */}
+              <CanvasViewNav activeView={canvasView} onViewChange={handleCanvasViewChange} />
+
+              {/* View content */}
+              {canvasView === 'overview' ? (
+                <WorkflowCanvas
+                  projectId={projectId}
+                  onNodeClick={(stepKey) => setSelectedNodeKey((prev) => prev === stepKey ? null : stepKey)}
+                />
+              ) : canvasView === 'characters' ? (
+                <CharacterAssetsView projectId={projectId} />
+              ) : canvasView === 'script' ? (
+                <ScriptOutputView projectId={projectId} episodeId={episodeId} />
+              ) : canvasView === 'storyboard' ? (
+                <StoryboardOutputView projectId={projectId} episodeId={episodeId} />
+              ) : canvasView === 'assembly' ? (
+                <AssemblyOutputView projectId={projectId} episodeId={episodeId} />
+              ) : null}
             </div>
 
-            {/* Node Detail Panel (slides in from right) */}
-            {selectedNodeKey && (
+            {/* Node Detail Panel (slides in from right, only in overview) */}
+            {canvasView === 'overview' && selectedNodeKey && (
               <NodeDetailPanel
                 stepKey={selectedNodeKey}
                 projectId={projectId}

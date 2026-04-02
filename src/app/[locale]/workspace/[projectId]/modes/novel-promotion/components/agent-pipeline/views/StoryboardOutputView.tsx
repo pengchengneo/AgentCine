@@ -30,7 +30,7 @@ function PanelCard({ panel, t }: PanelCardProps) {
         {imageUrl ? (
           <img
             src={imageUrl}
-            alt={panel.description ?? `panel-${panel.shotIndex}`}
+            alt={`panel-${panel.shotIndex}`}
             className="w-full h-full object-cover rounded-t-xl"
           />
         ) : (
@@ -56,27 +56,11 @@ function PanelCard({ panel, t }: PanelCardProps) {
 
       {/* Info area */}
       <div className="p-2.5 space-y-2">
-        {/* Description */}
-        {panel.description && (
+        {/* Motion prompt as description */}
+        {panel.motionPrompt && (
           <p className="text-xs text-white/60 leading-relaxed line-clamp-2">
-            {panel.description}
+            {panel.motionPrompt}
           </p>
-        )}
-
-        {/* Shot type + camera move tags */}
-        {(panel.shotType || panel.cameraMove) && (
-          <div className="flex flex-wrap gap-1">
-            {panel.shotType && (
-              <span className="inline-flex items-center rounded-full bg-cyan-500/15 border border-cyan-500/25 px-2 py-0.5 text-[10px] text-cyan-400">
-                {panel.shotType}
-              </span>
-            )}
-            {panel.cameraMove && (
-              <span className="inline-flex items-center rounded-full bg-blue-500/15 border border-blue-500/25 px-2 py-0.5 text-[10px] text-blue-400">
-                {panel.cameraMove}
-              </span>
-            )}
-          </div>
         )}
 
         {/* Voice text */}
@@ -118,7 +102,6 @@ function StoryboardGroupSection({ group, t }: StoryboardGroupSectionProps) {
 }
 
 export const StoryboardOutputView = memo(function StoryboardOutputView({
-  projectId: _projectId,
   episodeId,
 }: StoryboardOutputViewProps) {
   const t = useTranslations('pipeline')

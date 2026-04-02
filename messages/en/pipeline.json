@@ -145,5 +145,43 @@
   "reviewItems": "Review Items",
   "approved": "Approved",
   "error": "Error",
-  "statusPending": "Pending"
+  "statusPending": "Pending",
+
+  "canvasView.overview": "Overview",
+  "canvasView.script": "Script",
+  "canvasView.characters": "Characters",
+  "canvasView.storyboard": "Storyboard",
+  "canvasView.assembly": "Assembly",
+
+  "viewTitle.characters": "Art Director",
+  "viewTitle.script": "Script Agent",
+  "viewTitle.storyboard": "Storyboard Agent",
+  "viewTitle.assembly": "Assembly",
+
+  "viewSection.characters": "Characters",
+  "viewSection.locations": "Locations",
+  "viewSection.scene": "Scene",
+  "viewSection.clips": "Scene Clips",
+  "viewSection.storyboardGroup": "Storyboard",
+  "viewSection.panel": "Panel",
+
+  "viewEmpty.noCharacters": "No character data",
+  "viewEmpty.noLocations": "No location data",
+  "viewEmpty.noClips": "No script data",
+  "viewEmpty.noStoryboards": "No storyboard data",
+  "viewEmpty.noAssembly": "Not assembled yet",
+  "viewEmpty.assemblyHint": "The system will auto-assemble after storyboard and voice generation",
+  "viewEmpty.notGenerated": "Not generated",
+
+  "viewLabel.shotType": "Shot Type",
+  "viewLabel.cameraMove": "Camera Move",
+  "viewLabel.location": "Location",
+  "viewLabel.characters": "Characters",
+  "viewLabel.rendering": "Rendering...",
+  "viewLabel.renderCompleted": "Render completed",
+  "viewLabel.renderFailed": "Render failed",
+  "viewLabel.download": "Download",
+  "viewLabel.expand": "Expand",
+  "viewLabel.collapse": "Collapse",
+  "viewLabel.appearance": "Appearance"
 }
